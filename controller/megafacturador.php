@@ -1,7 +1,7 @@
 <?php
 /*
  * This file is part of FacturaSctipts
- * Copyright (C) 2014  Carlos Garcia Gomez  neorazorx@gmail.com
+ * Copyright (C) 2014-2015  Carlos Garcia Gomez  neorazorx@gmail.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -25,6 +25,7 @@ require_model('cliente.php');
 require_model('ejercicio.php');
 require_model('factura_cliente.php');
 require_model('factura_proveedor.php');
+require_model('forma_pago.php');
 require_model('partida.php');
 require_model('proveedor.php');
 require_model('regularizacion_iva.php');
@@ -48,10 +49,9 @@ class megafacturador extends fs_controller
    
    protected function process()
    {
-      $this->show_fs_toolbar = FALSE;
-      
       $this->cliente = new cliente();
       $this->ejercicio = new ejercicio();
+      $this->forma_pago = new forma_pago();
       $this->proveedor = new proveedor();
       $this->regularizacion = new regularizacion_iva();
       
