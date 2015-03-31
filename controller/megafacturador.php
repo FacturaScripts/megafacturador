@@ -197,7 +197,6 @@ class megafacturador extends fs_controller
                $n->cantidad = $l->cantidad;
                $n->codimpuesto = $l->codimpuesto;
                $n->descripcion = $l->descripcion;
-               $n->dtolineal = $l->dtolineal;
                $n->dtopor = $l->dtopor;
                $n->irpf = $l->irpf;
                $n->iva = $l->iva;
@@ -358,7 +357,6 @@ class megafacturador extends fs_controller
                $n->cantidad = $l->cantidad;
                $n->codimpuesto = $l->codimpuesto;
                $n->descripcion = $l->descripcion;
-               $n->dtolineal = $l->dtolineal;
                $n->dtopor = $l->dtopor;
                $n->irpf = $l->irpf;
                $n->iva = $l->iva;
