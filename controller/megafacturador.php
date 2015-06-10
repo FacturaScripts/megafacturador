@@ -125,6 +125,7 @@ class megafacturador extends fs_controller
          {
             $factura->pagada = TRUE;
          }
+         $factura->vencimiento = Date('d-m-Y', strtotime($factura->fecha.' '.$formapago->vencimiento));
       }
       
       /// obtenemos los datos actuales del cliente, por si ha habido cambios
