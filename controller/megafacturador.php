@@ -69,7 +69,7 @@ class megafacturador extends fs_controller
          if( isset($_REQUEST['ventas']) )
          {
             $albaran_cli = new albaran_cliente();
-            foreach($albaran_cli->all_ptefactura(0, 'ASC') as $alb)
+            foreach($albaran_cli->all_ptefactura(0, 'fecha ASC') as $alb)
             {
                $this->generar_factura_cliente( array($alb) );
             }
@@ -82,7 +82,7 @@ class megafacturador extends fs_controller
          if( isset($_REQUEST['compras']) )
          {
             $albaran_pro = new albaran_proveedor();
-            foreach($albaran_pro->all_ptefactura(0, 'ASC') as $alb)
+            foreach($albaran_pro->all_ptefactura(0, 'fecha ASC') as $alb)
             {
                $this->generar_factura_proveedor( array($alb) );
             }
@@ -98,7 +98,6 @@ class megafacturador extends fs_controller
       $continuar = TRUE;
       
       $factura = new factura_cliente();
-      $factura->automatica = TRUE;
       $factura->codagente = $albaranes[0]->codagente;
       $factura->codalmacen = $albaranes[0]->codalmacen;
       $factura->coddivisa = $albaranes[0]->coddivisa;
@@ -106,11 +105,9 @@ class megafacturador extends fs_controller
       $factura->codejercicio = $albaranes[0]->codejercicio;
       $factura->codpago = $albaranes[0]->codpago;
       $factura->codserie = $albaranes[0]->codserie;
-      $factura->editable = FALSE;
       $factura->irpf = $albaranes[0]->irpf;
       $factura->numero2 = $albaranes[0]->numero2;
       $factura->observaciones = $albaranes[0]->observaciones;
-      $factura->recfinanciero = $albaranes[0]->recfinanciero;
       
       if( $_REQUEST['fecha'] == 'albaran' )
       {
@@ -284,8 +281,6 @@ class megafacturador extends fs_controller
       $continuar = TRUE;
       
       $factura = new factura_proveedor();
-      $factura->automatica = TRUE;
-      $factura->editable = FALSE;
       $factura->codalmacen = $albaranes[0]->codalmacen;
       $factura->coddivisa = $albaranes[0]->coddivisa;
       $factura->tasaconv = $albaranes[0]->tasaconv;
@@ -295,7 +290,6 @@ class megafacturador extends fs_controller
       $factura->irpf = $albaranes[0]->irpf;
       $factura->numproveedor = $albaranes[0]->numproveedor;
       $factura->observaciones = $albaranes[0]->observaciones;
-      $factura->recfinanciero = $albaranes[0]->recfinanciero;
       
       if( $_REQUEST['fecha'] == 'albaran' )
       {

@@ -1,30 +1,31 @@
 {include="header"}
 
 <form class="form" action="{$fsc->url()}" method="post">
-   <div class="container-fluid" style="margin-top: 10px;">
+   <div class="container">
       <div class="row">
-         <div class="col-md-10">
-            <h2 style="margin-top: 0px; margin-bottom: 0px;">Facturar...</h2>
+         <div class="col-sm-12">
+            <div class="page-header">
+               <h1>
+                  <span class="glyphicon glyphicon-king" aria-hidden="true"></span>
+                  MegaFacturador
+                  <a href="{$fsc->url()}" class="btn btn-xs btn-default" title="Recargar la página">
+                     <span class="glyphicon glyphicon-refresh"></span>
+                  </a>
+               </h1>
+            </div>
             <p>
-               Elige las opciones que quieras y pulsa el botón empezar.
+               Elige qué es lo que quieres facturar y como y pulsa el botón empezar.
             </p>
-         </div>
-         <div class="col-md-2 text-right">
-            <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
-               <span class="glyphicon glyphicon-play"></span> &nbsp; Empezar
-            </button>
          </div>
       </div>
       <div class="row">
-         <div class="col-md-4">
+         <div class="col-sm-5">
             <div class="checkbox">
                <label>
                   <input type="checkbox" name="ventas" value="TRUE"{if="$fsc->opciones['ventas']"} checked="checked"{/if}/>
                   Albaranes de venta pendientes <span class="badge">{$fsc->pendientes_venta()}</span>
                </label>
             </div>
-         </div>
-         <div class="col-md-4">
             <div class="checkbox">
                <label>
                   <input type="checkbox" name="compras" value="TRUE"{if="$fsc->opciones['compras']"} checked="checked"{/if}/>
@@ -32,7 +33,7 @@
                </label>
             </div>
          </div>
-         <div class="col-md-4">
+         <div class="col-sm-4">
             <div class="form-group">
                Facturar con fecha:
                <select name="fecha" class="form-control">
@@ -40,6 +41,12 @@
                   <option value="albaran"{if="$fsc->opciones['fecha']=='albaran'"} selected="selected"{/if}>El mismo día del {#FS_ALBARAN#}</option>
                </select>
             </div>
+         </div>
+         <div class="col-sm-3 text-right">
+            <br/>
+            <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
+               <span class="glyphicon glyphicon-play"></span> &nbsp; Empezar
+            </button>
          </div>
       </div>
    </div>
