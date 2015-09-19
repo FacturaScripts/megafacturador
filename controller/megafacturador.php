@@ -47,7 +47,7 @@ class megafacturador extends fs_controller
       parent::__construct('megafacturador', 'MegaFacturador', 'ventas', FALSE, TRUE);
    }
    
-   protected function process()
+   protected function private_core()
    {
       $this->cliente = new cliente();
       $this->ejercicio = new ejercicio();
