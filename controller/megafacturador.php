@@ -41,6 +41,7 @@ class megafacturador extends fs_controller
    public $opciones;
    private $regularizacion;
    private $total;
+   public $serie;
    
    public function __construct()
    {
@@ -54,6 +55,7 @@ class megafacturador extends fs_controller
       $this->forma_pago = new forma_pago();
       $this->proveedor = new proveedor();
       $this->regularizacion = new regularizacion_iva();
+      $this->serie = new serie();
       
       $this->opciones = array(
           'ventas' => TRUE,
@@ -65,11 +67,17 @@ class megafacturador extends fs_controller
       {
          $this->opciones['fecha'] = $_REQUEST['fecha'];
          
+         $codserie = FALSE;
+         if( isset($_REQUEST['codserie']) )
+         {
+            $codserie = $_REQUEST['codserie'];
+         }
+         
          $this->total = 0;
          if( isset($_REQUEST['ventas']) )
          {
             $albaran_cli = new albaran_cliente();
-            foreach($albaran_cli->all_ptefactura(0, 'fecha ASC') as $alb)
+            foreach($albaran_cli->all_ptefactura(0, 'fecha ASC', $codserie) as $alb)
             {
                $this->generar_factura_cliente( array($alb) );
             }
@@ -82,7 +90,7 @@ class megafacturador extends fs_controller
          if( isset($_REQUEST['compras']) )
          {
             $albaran_pro = new albaran_proveedor();
-            foreach($albaran_pro->all_ptefactura(0, 'fecha ASC') as $alb)
+            foreach($albaran_pro->all_ptefactura(0, 'fecha ASC', $codserie) as $alb)
             {
                $this->generar_factura_proveedor( array($alb) );
             }
