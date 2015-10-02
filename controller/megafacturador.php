@@ -41,7 +41,8 @@ class megafacturador extends fs_controller
    public $opciones;
    private $regularizacion;
    private $total;
-   public $serie;
+   public $codserie;
+   public $series;
    
    public function __construct()
    {
@@ -55,7 +56,9 @@ class megafacturador extends fs_controller
       $this->forma_pago = new forma_pago();
       $this->proveedor = new proveedor();
       $this->regularizacion = new regularizacion_iva();
-      $this->serie = new serie();
+      $serie = new serie();
+      
+      $this->series = $serie->all();
       
       $this->opciones = array(
           'ventas' => TRUE,
@@ -63,21 +66,22 @@ class megafacturador extends fs_controller
           'fecha' => 'hoy'
       );
       
+      
+      $this->codserie = FALSE;
+      if( isset($_REQUEST['codserie']) )
+      {
+         $this->codserie = $_REQUEST['codserie'];
+      }
+
       if( isset($_REQUEST['fecha']) )
       {
          $this->opciones['fecha'] = $_REQUEST['fecha'];
-         
-         $codserie = FALSE;
-         if( isset($_REQUEST['codserie']) )
-         {
-            $codserie = $_REQUEST['codserie'];
-         }
          
          $this->total = 0;
          if( isset($_REQUEST['ventas']) )
          {
             $albaran_cli = new albaran_cliente();
-            foreach($albaran_cli->all_ptefactura(0, 'fecha ASC', $codserie) as $alb)
+            foreach($albaran_cli->all_ptefactura(0, 'fecha ASC', $this->codserie) as $alb)
             {
                $this->generar_factura_cliente( array($alb) );
             }
@@ -90,7 +94,7 @@ class megafacturador extends fs_controller
          if( isset($_REQUEST['compras']) )
          {
             $albaran_pro = new albaran_proveedor();
-            foreach($albaran_pro->all_ptefactura(0, 'fecha ASC', $codserie) as $alb)
+            foreach($albaran_pro->all_ptefactura(0, 'fecha ASC', $this->codserie) as $alb)
             {
                $this->generar_factura_proveedor( array($alb) );
             }
@@ -445,7 +449,14 @@ class megafacturador extends fs_controller
    {
       $total = 0;
       
-      $data = $this->db->select("SELECT count(idalbaran) as total FROM albaranescli WHERE ptefactura = true;");
+      $codserie = $this->codserie;
+      
+      if (!$this->codserie)
+      {
+          $codserie = $this->series[0]->codserie;
+      }
+      
+      $data = $this->db->select("SELECT count(idalbaran) as total FROM albaranescli WHERE ptefactura = true AND codserie = '".$codserie."';");
       if($data)
       {
          $total = intval($data[0]['total']);
@@ -458,7 +469,14 @@ class megafacturador extends fs_controller
    {
       $total = 0;
       
-      $data = $this->db->select("SELECT count(idalbaran) as total FROM albaranesprov WHERE ptefactura = true;");
+      $codserie = $this->codserie;
+      
+      if (!$this->codserie)
+      {
+          $codserie = $this->series[0]->codserie;
+      }
+      
+      $data = $this->db->select("SELECT count(idalbaran) as total FROM albaranesprov WHERE ptefactura = true AND codserie = '".$codserie."';");
       if($data)
       {
          $total = intval($data[0]['total']);
