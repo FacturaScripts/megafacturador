@@ -711,15 +711,10 @@ class albaran_cliente extends fs_model
       return $albalist;
    }
    
-   public function all_ptefactura($offset=0, $order='fecha ASC', $codserie = false)
+   public function all_ptefactura($offset=0, $order='fecha ASC')
    {
       $albalist = array();
-      $sql = "SELECT * FROM ".$this->table_name." WHERE ptefactura = true";
-      if ($codserie)
-      {
-          $sql .= " AND codserie = '".$codserie."'";
-      }
-      $sql .= " ORDER BY ".$order;
+      $sql = "SELECT * FROM ".$this->table_name." WHERE ptefactura = true ORDER BY ".$order;
       
       $data = $this->db->select_limit($sql, FS_ITEM_LIMIT, $offset);
       if($data)
