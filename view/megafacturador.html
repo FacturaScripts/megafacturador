@@ -1,5 +1,4 @@
 {include="header"}
-
 <form class="form" action="{$fsc->url()}" method="post">
    <div class="container">
       <div class="row">
@@ -19,7 +18,7 @@
          </div>
       </div>
       <div class="row">
-         <div class="col-sm-5">
+         <div class="col-sm-4">
             <div class="checkbox">
                <label>
                   <input type="checkbox" name="ventas" value="TRUE"{if="$fsc->opciones['ventas']"} checked="checked"{/if}/>
@@ -33,7 +32,21 @@
                </label>
             </div>
          </div>
-         <div class="col-sm-4">
+         <div class="col-sm-3">
+            <div class="form-group">
+               Solo la serie:
+               <select name="codserie" class="form-control" onchange="this.form.fecha.disabled=true; this.form.submit();">
+               {loop="$fsc->series"}
+                    {if="$fsc->codserie==$value->codserie"}
+                       <option value="{$value->codserie}" selected="selected">{$value->descripcion}</option>
+                    {else}
+                        <option value="{$value->codserie}">{$value->descripcion}</option>
+                    {/if}
+               {/loop}
+               </select>
+            </div>
+         </div>
+         <div class="col-sm-3">
             <div class="form-group">
                Facturar con fecha:
                <select name="fecha" class="form-control">
@@ -42,7 +55,7 @@
                </select>
             </div>
          </div>
-         <div class="col-sm-3 text-right">
+         <div class="col-sm-2 text-right">
             <br/>
             <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
                <span class="glyphicon glyphicon-play"></span> &nbsp; Empezar
