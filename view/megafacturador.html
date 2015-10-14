@@ -1,6 +1,15 @@
 {include="header"}
 
-<form class="form" action="{$fsc->url()}" method="post">
+<script type="text/javascript">
+   function facturar()
+   {
+      document.f_facturador.procesar.value = 'TRUE';
+      document.f_facturador.submit();
+   }
+</script>
+
+<form name="f_facturador" class="form" action="{$fsc->url()}" method="post">
+   <input type="hidden" name="procesar" value="FALSE"/>
    <div class="container">
       <div class="row">
          <div class="col-sm-12">
@@ -64,7 +73,7 @@
          </div>
          <div class="col-sm-2 text-right">
             <br/>
-            <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
+            <button class="btn btn-sm btn-primary" type="button" onclick="this.disabled=true;facturar()">
                <span class="glyphicon glyphicon-play"></span> &nbsp; Empezar
             </button>
          </div>

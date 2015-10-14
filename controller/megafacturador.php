@@ -69,29 +69,32 @@ class megafacturador extends fs_controller
          $this->opciones['codserie'] = $_REQUEST['codserie'];
          $this->opciones['fecha'] = $_REQUEST['fecha'];
          
-         $this->total = 0;
-         if( isset($_REQUEST['ventas']) )
+         if($_REQUEST['procesar'] == 'TRUE')
          {
-            foreach($this->pendientes_venta() as $alb)
+            $this->total = 0;
+            if( isset($_REQUEST['ventas']) )
             {
-               $this->generar_factura_cliente( array($alb) );
+               foreach($this->pendientes_venta() as $alb)
+               {
+                  $this->generar_factura_cliente( array($alb) );
+               }
+               $this->new_message($this->total.' '.FS_ALBARANES.' de cliente facturados.');
             }
-            $this->new_message($this->total.' '.FS_ALBARANES.' de cliente facturados.');
-         }
-         else
-            $this->opciones['ventas'] = FALSE;
-         
-         $this->total = 0;
-         if( isset($_REQUEST['compras']) )
-         {
-            foreach($this->pendientes_compra() as $alb)
+            else
+               $this->opciones['ventas'] = FALSE;
+            
+            $this->total = 0;
+            if( isset($_REQUEST['compras']) )
             {
-               $this->generar_factura_proveedor( array($alb) );
+               foreach($this->pendientes_compra() as $alb)
+               {
+                  $this->generar_factura_proveedor( array($alb) );
+               }
+               $this->new_message($this->total.' '.FS_ALBARANES.' de proveedor facturados.');
             }
-            $this->new_message($this->total.' '.FS_ALBARANES.' de proveedor facturados.');
+            else
+               $this->opciones['compras'] = FALSE;
          }
-         else
-            $this->opciones['compras'] = FALSE;
       }
    }
    
