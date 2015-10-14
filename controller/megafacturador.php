@@ -35,14 +35,13 @@ require_model('subcuenta.php');
 class megafacturador extends fs_controller
 {
    private $cliente;
-   private $forma_pago;
    private $ejercicio;
-   private $proveedor;
+   private $forma_pago;
    public $opciones;
+   private $proveedor;
    private $regularizacion;
+   public $serie;
    private $total;
-   public $codserie;
-   public $series;
    
    public function __construct()
    {
@@ -56,32 +55,24 @@ class megafacturador extends fs_controller
       $this->forma_pago = new forma_pago();
       $this->proveedor = new proveedor();
       $this->regularizacion = new regularizacion_iva();
-      $serie = new serie();
-      
-      $this->series = $serie->all();
+      $this->serie = new serie();
       
       $this->opciones = array(
           'ventas' => TRUE,
           'compras' => TRUE,
+          'codserie' => '',
           'fecha' => 'hoy'
       );
       
-      
-      $this->codserie = FALSE;
-      if( isset($_REQUEST['codserie']) )
-      {
-         $this->codserie = $_REQUEST['codserie'];
-      }
-
       if( isset($_REQUEST['fecha']) )
       {
+         $this->opciones['codserie'] = $_REQUEST['codserie'];
          $this->opciones['fecha'] = $_REQUEST['fecha'];
          
          $this->total = 0;
          if( isset($_REQUEST['ventas']) )
          {
-            $albaran_cli = new albaran_cliente();
-            foreach($albaran_cli->all_ptefactura(0, 'fecha ASC', $this->codserie) as $alb)
+            foreach($this->pendientes_venta() as $alb)
             {
                $this->generar_factura_cliente( array($alb) );
             }
@@ -93,8 +84,7 @@ class megafacturador extends fs_controller
          $this->total = 0;
          if( isset($_REQUEST['compras']) )
          {
-            $albaran_pro = new albaran_proveedor();
-            foreach($albaran_pro->all_ptefactura(0, 'fecha ASC', $this->codserie) as $alb)
+            foreach($this->pendientes_compra() as $alb)
             {
                $this->generar_factura_proveedor( array($alb) );
             }
@@ -447,16 +437,37 @@ class megafacturador extends fs_controller
    
    public function pendientes_venta()
    {
-      $total = 0;
+      $alblist = array();
       
-      $codserie = $this->codserie;
-      
-      if (!$this->codserie)
+      $sql = "SELECT * FROM albaranescli WHERE ptefactura = true";
+      if($this->opciones['codserie'] != '')
       {
-          $codserie = $this->series[0]->codserie;
+         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['codserie']);
       }
       
-      $data = $this->db->select("SELECT count(idalbaran) as total FROM albaranescli WHERE ptefactura = true AND codserie = '".$codserie."';");
+      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', FS_ITEM_LIMIT, 0);
+      if($data)
+      {
+         foreach($data as $d)
+         {
+            $alblist[] = new albaran_cliente($d);
+         }
+      }
+      
+      return $alblist;
+   }
+   
+   public function total_pendientes_venta()
+   {
+      $total = 0;
+      
+      $sql = "SELECT count(idalbaran) as total FROM albaranescli WHERE ptefactura = true";
+      if($this->opciones['codserie'] != '')
+      {
+         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['codserie']);
+      }
+      
+      $data = $this->db->select($sql);
       if($data)
       {
          $total = intval($data[0]['total']);
@@ -467,16 +478,37 @@ class megafacturador extends fs_controller
    
    public function pendientes_compra()
    {
-      $total = 0;
+      $alblist = array();
       
-      $codserie = $this->codserie;
-      
-      if (!$this->codserie)
+      $sql = "SELECT * FROM albaranesprov WHERE ptefactura = true";
+      if($this->opciones['codserie'] != '')
       {
-          $codserie = $this->series[0]->codserie;
+         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['codserie']);
       }
       
-      $data = $this->db->select("SELECT count(idalbaran) as total FROM albaranesprov WHERE ptefactura = true AND codserie = '".$codserie."';");
+      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', FS_ITEM_LIMIT, 0);
+      if($data)
+      {
+         foreach($data as $d)
+         {
+            $alblist[] = new albaran_proveedor($d);
+         }
+      }
+      
+      return $alblist;
+   }
+   
+   public function total_pendientes_compra()
+   {
+      $total = 0;
+      
+      $sql = "SELECT count(idalbaran) as total FROM albaranesprov WHERE ptefactura = true";
+      if($this->opciones['codserie'] != '')
+      {
+         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['codserie']);
+      }
+      
+      $data = $this->db->select($sql);
       if($data)
       {
          $total = intval($data[0]['total']);
