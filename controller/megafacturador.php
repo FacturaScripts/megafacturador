@@ -42,6 +42,7 @@ class megafacturador extends fs_controller
    private $regularizacion;
    public $serie;
    private $total;
+   public $url_recarga;
    
    public function __construct()
    {
@@ -56,6 +57,7 @@ class megafacturador extends fs_controller
       $this->proveedor = new proveedor();
       $this->regularizacion = new regularizacion_iva();
       $this->serie = new serie();
+      $this->url_recarga = FALSE;
       
       $this->opciones = array(
           'ventas' => TRUE,
@@ -71,12 +73,14 @@ class megafacturador extends fs_controller
          
          if($_REQUEST['procesar'] == 'TRUE')
          {
+            $recargar = FALSE;
             $this->total = 0;
             if( isset($_REQUEST['ventas']) )
             {
                foreach($this->pendientes_venta() as $alb)
                {
                   $this->generar_factura_cliente( array($alb) );
+                  $recargar = TRUE;
                }
                $this->new_message($this->total.' '.FS_ALBARANES.' de cliente facturados.');
             }
@@ -89,13 +93,51 @@ class megafacturador extends fs_controller
                foreach($this->pendientes_compra() as $alb)
                {
                   $this->generar_factura_proveedor( array($alb) );
+                  $recargar = TRUE;
                }
                $this->new_message($this->total.' '.FS_ALBARANES.' de proveedor facturados.');
             }
             else
                $this->opciones['compras'] = FALSE;
+            
+            /// ¿Recargamos?
+            if($recargar)
+            {
+               $this->url_recarga = $this->url().'&fecha='.$this->opciones['fecha']
+                       .'&codserie='.$this->opciones['codserie'].'&procesar=TRUE';
+               
+               if( isset($_REQUEST['ventas']) )
+               {
+                  $this->url_recarga .= '&ventas=TRUE';
+               }
+               
+               if( isset($_REQUEST['compras']) )
+               {
+                  $this->url_recarga .= '&compras=TRUE';
+               }
+               
+               $this->new_message('Recargando...');
+            }
          }
       }
+   }
+   
+   private function get_best_fecha_fc($fecha, $codserie, $codejercicio)
+   {
+      $bfecha = $fecha;
+      
+      $sql = "SELECT MAX(fecha) as fecha FROM facturascli WHERE codserie = ".$this->empresa->var2str($codserie)
+              ." AND codejercicio = ".$this->empresa->var2str($codejercicio).";";
+      $data = $this->db->select($sql);
+      if($data)
+      {
+         if( strtotime($data[0]['fecha']) > strtotime($bfecha) )
+         {
+            $bfecha = $data[0]['fecha'];
+         }
+      }
+      
+      return $bfecha;
    }
    
    private function generar_factura_cliente($albaranes)
@@ -116,7 +158,7 @@ class megafacturador extends fs_controller
       
       if( $_REQUEST['fecha'] == 'albaran' )
       {
-         $factura->fecha = $albaranes[0]->fecha;
+         $factura->fecha = $this->get_best_fecha_fc($albaranes[0]->fecha, $albaranes[0]->codserie, $albaranes[0]->codejercicio);
       }
       
       /// comprobamos la forma de pago para saber si hay que marcar la factura como pagada

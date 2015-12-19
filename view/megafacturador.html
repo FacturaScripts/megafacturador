@@ -1,5 +1,17 @@
 {include="header"}
 
+{if="$fsc->url_recarga"}
+<script type="text/javascript">
+   function recargar()
+   {
+      window.location.href = '{$fsc->url_recarga}';
+   }
+   $(document).ready(function() {
+      setTimeout(recargar, 1000);
+   });
+</script>
+{/if}
+
 <script type="text/javascript">
    function facturar()
    {
