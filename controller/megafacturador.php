@@ -161,17 +161,6 @@ class megafacturador extends fs_controller
          $factura->fecha = $this->get_best_fecha_fc($albaranes[0]->fecha, $albaranes[0]->codserie, $albaranes[0]->codejercicio);
       }
       
-      /// comprobamos la forma de pago para saber si hay que marcar la factura como pagada
-      $formapago = $this->forma_pago->get($factura->codpago);
-      if($formapago)
-      {
-         if($formapago->genrecibos == 'Pagados')
-         {
-            $factura->pagada = TRUE;
-         }
-         $factura->vencimiento = Date('d-m-Y', strtotime($factura->fecha.' '.$formapago->vencimiento));
-      }
-      
       /// obtenemos los datos actuales del cliente, por si ha habido cambios
       $cliente = $this->cliente->get($albaranes[0]->codcliente);
       if($cliente)
@@ -217,6 +206,17 @@ class megafacturador extends fs_controller
       /// asignamos la mejor fecha posible, pero dentro del ejercicio
       $eje0 = $this->ejercicio->get($factura->codejercicio);
       $factura->fecha = $eje0->get_best_fecha($factura->fecha);
+      
+      /// comprobamos la forma de pago para saber si hay que marcar la factura como pagada
+      $formapago = $this->forma_pago->get($factura->codpago);
+      if($formapago)
+      {
+         if($formapago->genrecibos == 'Pagados')
+         {
+            $factura->pagada = TRUE;
+         }
+         $factura->vencimiento = Date('d-m-Y', strtotime($factura->fecha.' '.$formapago->vencimiento));
+      }
       
       if( !$eje0->abierto() )
       {
