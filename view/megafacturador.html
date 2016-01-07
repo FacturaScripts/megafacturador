@@ -20,9 +20,9 @@
    }
 </script>
 
-<form name="f_facturador" class="form" action="{$fsc->url()}" method="post">
-   <input type="hidden" name="procesar" value="FALSE"/>
-   <div class="container">
+<div class="container">
+   <form name="f_facturador" class="form" action="{$fsc->url()}" method="post">
+      <input type="hidden" name="procesar" value="FALSE"/>
       <div class="row">
          <div class="col-sm-12">
             <div class="page-header">
@@ -90,7 +90,32 @@
             </button>
          </div>
       </div>
+   </form>
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="page-header">
+            <h2>
+               <span class="glyphicon glyphicon-info-sign"></span> Otras opciones
+            </h2>
+         </div>
+      </div>
    </div>
-</form>
+   <div class="row">
+      <div class="col-sm-3">
+         <a href="{$fsc->url()}&genasientos=TRUE" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-paperclip"></span>
+            &nbsp; Generar asientos
+         </a>
+      </div>
+      <div class="col-sm-9">
+         <p class="help-block">
+            Genera los asientos de las facturas que no tengan. Si tienes activada
+            la contabilidad integrada, los asientos contables de las facturas se
+            generan automáticamente, pero si por algún motivo tienes facturas sin
+            asientos o quieres generarlos ahora, simplemente pulsa el botón.
+         </p>
+      </div>
+   </div>
+</div>
 
 {include="footer"}

@@ -120,6 +120,10 @@ class megafacturador extends fs_controller
             }
          }
       }
+      else if( isset($_GET['genasientos']) )
+      {
+         $this->generar_asientos();
+      }
    }
    
    private function get_best_fecha_fc($fecha, $codserie, $codejercicio)
@@ -560,5 +564,32 @@ class megafacturador extends fs_controller
       }
       
       return $total;
+   }
+   
+   private function generar_asientos()
+   {
+      $nuevos = 0;
+      $facli = new factura_cliente();
+      foreach($facli->all(0, 500) as $factura)
+      {
+         if( is_null($factura->idasiento) )
+         {
+            $this->generar_asiento_cliente($factura);
+            $nuevos++;
+         }
+      }
+      $this->new_message($nuevos.' asientos generados para facturas de venta.');
+      
+      $nuevos = 0;
+      $fapro = new factura_proveedor();
+      foreach($fapro->all(0, 500) as $factura)
+      {
+         if( is_null($factura->idasiento) )
+         {
+            $this->generar_asiento_proveedor($factura);
+            $nuevos++;
+         }
+      }
+      $this->new_message($nuevos.' asientos generados para facturas de compra.');
    }
 }
