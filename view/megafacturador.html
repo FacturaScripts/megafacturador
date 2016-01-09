@@ -32,6 +32,13 @@
                   <a href="{$fsc->url()}" class="btn btn-xs btn-default" title="Recargar la página">
                      <span class="glyphicon glyphicon-refresh"></span>
                   </a>
+                  <span class="btn-group">
+                  {loop="$fsc->extensions"}
+                     {if="$value->type=='button'"}
+                     <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>
+                     {/if}
+                  {/loop}
+                  </span>
                </h1>
                <p class="help-block">
                   Elige qué es lo que quieres facturar, cómo y pulsa el botón empezar.
