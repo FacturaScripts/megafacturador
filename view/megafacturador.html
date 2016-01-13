@@ -112,6 +112,9 @@
          <a href="{$fsc->url()}&genasientos=TRUE" class="btn btn-default btn-block">
             <span class="glyphicon glyphicon-paperclip"></span>
             &nbsp; Generar asientos
+            {if="$fsc->numasientos>0"}
+            <span class="badge">{$fsc->numasientos}</span>
+            {/if}
          </a>
       </div>
       <div class="col-sm-9">

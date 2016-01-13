@@ -34,15 +34,17 @@ require_model('subcuenta.php');
 
 class megafacturador extends fs_controller
 {
+   public $numasientos;
+   public $opciones;
+   public $serie;
+   public $url_recarga;
+   
    private $cliente;
    private $ejercicio;
    private $forma_pago;
-   public $opciones;
    private $proveedor;
    private $regularizacion;
-   public $serie;
    private $total;
-   public $url_recarga;
    
    public function __construct()
    {
@@ -54,6 +56,7 @@ class megafacturador extends fs_controller
       $this->cliente = new cliente();
       $this->ejercicio = new ejercicio();
       $this->forma_pago = new forma_pago();
+      $this->numasientos = 0;
       $this->proveedor = new proveedor();
       $this->regularizacion = new regularizacion_iva();
       $this->serie = new serie();
@@ -101,7 +104,11 @@ class megafacturador extends fs_controller
                $this->opciones['compras'] = FALSE;
             
             /// ¿Recargamos?
-            if($recargar)
+            if( count($this->get_errors()) > 0 )
+            {
+               $this->new_error_msg('Se han producido errores. Proceso detenido.');
+            }
+            else if($recargar)
             {
                $this->url_recarga = $this->url().'&fecha='.$this->opciones['fecha']
                        .'&codserie='.$this->opciones['codserie'].'&procesar=TRUE';
@@ -118,12 +125,18 @@ class megafacturador extends fs_controller
                
                $this->new_message('Recargando...');
             }
+            else
+            {
+               $this->new_advice('Finalizado. <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>');
+            }
          }
       }
       else if( isset($_GET['genasientos']) )
       {
          $this->generar_asientos();
       }
+      
+      $this->numasientos = $this->num_asientos_a_generar();
    }
    
    private function get_best_fecha_fc($fecha, $codserie, $codejercicio)
@@ -494,7 +507,7 @@ class megafacturador extends fs_controller
          $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['codserie']);
       }
       
-      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', FS_ITEM_LIMIT, 0);
+      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 25, 0);
       if($data)
       {
          foreach($data as $d)
@@ -535,7 +548,7 @@ class megafacturador extends fs_controller
          $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['codserie']);
       }
       
-      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', FS_ITEM_LIMIT, 0);
+      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 25, 0);
       if($data)
       {
          foreach($data as $d)
@@ -591,5 +604,26 @@ class megafacturador extends fs_controller
          }
       }
       $this->new_message($nuevos.' asientos generados para facturas de compra.');
+   }
+   
+   private function num_asientos_a_generar()
+   {
+      $num = 0;
+      
+      $sql = "SELECT COUNT(idfactura) as num FROM facturascli WHERE idasiento IS NULL;";
+      $data = $this->db->select($sql);
+      if($data)
+      {
+         $num += intval($data[0]['num']);
+      }
+      
+      $sql = "SELECT COUNT(idfactura) as num FROM facturasprov WHERE idasiento IS NULL;";
+      $data = $this->db->select($sql);
+      if($data)
+      {
+         $num += intval($data[0]['num']);
+      }
+      
+      return $num;
    }
 }
