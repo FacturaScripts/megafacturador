@@ -139,24 +139,6 @@ class megafacturador extends fs_controller
       $this->numasientos = $this->num_asientos_a_generar();
    }
    
-   private function get_best_fecha_fc($fecha, $codserie, $codejercicio)
-   {
-      $bfecha = $fecha;
-      
-      $sql = "SELECT MAX(fecha) as fecha FROM facturascli WHERE codserie = ".$this->empresa->var2str($codserie)
-              ." AND codejercicio = ".$this->empresa->var2str($codejercicio).";";
-      $data = $this->db->select($sql);
-      if($data)
-      {
-         if( strtotime($data[0]['fecha']) > strtotime($bfecha) )
-         {
-            $bfecha = $data[0]['fecha'];
-         }
-      }
-      
-      return $bfecha;
-   }
-   
    private function generar_factura_cliente($albaranes)
    {
       $continuar = TRUE;
@@ -166,16 +148,39 @@ class megafacturador extends fs_controller
       $factura->codalmacen = $albaranes[0]->codalmacen;
       $factura->coddivisa = $albaranes[0]->coddivisa;
       $factura->tasaconv = $albaranes[0]->tasaconv;
-      $factura->codejercicio = $albaranes[0]->codejercicio;
       $factura->codpago = $albaranes[0]->codpago;
       $factura->codserie = $albaranes[0]->codserie;
       $factura->irpf = $albaranes[0]->irpf;
       $factura->numero2 = $albaranes[0]->numero2;
       $factura->observaciones = $albaranes[0]->observaciones;
       
+      /// asignamos fecha y ejercicio usando la del albarán
       if( $_REQUEST['fecha'] == 'albaran' )
       {
-         $factura->fecha = $this->get_best_fecha_fc($albaranes[0]->fecha, $albaranes[0]->codserie, $albaranes[0]->codejercicio);
+         $eje0 = $this->ejercicio->get($albaranes[0]->codejercicio);
+         if($eje0)
+         {
+            if( $eje0->abierto() )
+            {
+               $factura->codejercicio = $albaranes[0]->codejercicio;
+               $factura->set_fecha_hora($albaranes[0]->fecha, $albaranes[0]->hora);
+            }
+         }
+      }
+      
+      /**
+       * Si se ha elegido fecha de hoy o no se ha podido usar la del albarán porque
+       * el ejercicio estaba cerrado, asignamos ejercicio para hoy y usamos la mejor
+       * fecha y hora.
+       */
+      if( is_null($factura->codejercicio) )
+      {
+         $eje0 = $this->ejercicio->get_by_fecha($factura->fecha);
+         if($eje0)
+         {
+            $factura->codejercicio = $eje0->codejercicio;
+            $factura->set_fecha_hora($factura->fecha, $factura->hora);
+         }
       }
       
       /// obtenemos los datos actuales del cliente, por si ha habido cambios
@@ -220,10 +225,6 @@ class megafacturador extends fs_controller
       $factura->totalrecargo = round($factura->totalrecargo, FS_NF0);
       $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
       
-      /// asignamos la mejor fecha posible, pero dentro del ejercicio
-      $eje0 = $this->ejercicio->get($factura->codejercicio);
-      $factura->fecha = $eje0->get_best_fecha($factura->fecha);
-      
       /// comprobamos la forma de pago para saber si hay que marcar la factura como pagada
       $formapago = $this->forma_pago->get($factura->codpago);
       if($formapago)
@@ -235,7 +236,11 @@ class megafacturador extends fs_controller
          $factura->vencimiento = Date('d-m-Y', strtotime($factura->fecha.' '.$formapago->vencimiento));
       }
       
-      if( !$eje0->abierto() )
+      if( !$eje0 )
+      {
+         $this->new_error_msg("Ningún ejercicio encontrado.");
+      }
+      else if( !$eje0->abierto() )
       {
          $this->new_error_msg('El ejercicio '.$eje0->codejercicio.' está cerrado.');
       }
@@ -348,16 +353,39 @@ class megafacturador extends fs_controller
       $factura->codalmacen = $albaranes[0]->codalmacen;
       $factura->coddivisa = $albaranes[0]->coddivisa;
       $factura->tasaconv = $albaranes[0]->tasaconv;
-      $factura->codejercicio = $albaranes[0]->codejercicio;
       $factura->codpago = $albaranes[0]->codpago;
       $factura->codserie = $albaranes[0]->codserie;
       $factura->irpf = $albaranes[0]->irpf;
       $factura->numproveedor = $albaranes[0]->numproveedor;
       $factura->observaciones = $albaranes[0]->observaciones;
       
+      /// asignamos fecha y ejercicio usando la del albarán
       if( $_REQUEST['fecha'] == 'albaran' )
       {
-         $factura->fecha = $albaranes[0]->fecha;
+         $eje0 = $this->ejercicio->get($albaranes[0]->codejercicio);
+         if($eje0)
+         {
+            if( $eje0->abierto() )
+            {
+               $factura->codejercicio = $albaranes[0]->codejercicio;
+               $factura->set_fecha_hora($albaranes[0]->fecha, $albaranes[0]->hora);
+            }
+         }
+      }
+      
+      /**
+       * Si se ha elegido fecha de hoy o no se ha podido usar la del albarán porque
+       * el ejercicio estaba cerrado, asignamos ejercicio para hoy y usamos la mejor
+       * fecha y hora.
+       */
+      if( is_null($factura->codejercicio) )
+      {
+         $eje0 = $this->ejercicio->get_by_fecha($factura->fecha);
+         if($eje0)
+         {
+            $factura->codejercicio = $eje0->codejercicio;
+            $factura->set_fecha_hora($factura->fecha, $factura->hora);
+         }
       }
       
       /// obtenemos los datos actualizados del proveedor
@@ -388,11 +416,11 @@ class megafacturador extends fs_controller
       $factura->totalrecargo = round($factura->totalrecargo, FS_NF0);
       $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
       
-      /// asignamos la mejor fecha posible, pero dentro del ejercicio
-      $eje0 = $this->ejercicio->get($factura->codejercicio);
-      $factura->fecha = $eje0->get_best_fecha($factura->fecha);
-      
-      if( !$eje0->abierto() )
+      if( !$eje0 )
+      {
+         $this->new_error_msg("Ningún ejercicio encontrado.");
+      }
+      else if( !$eje0->abierto() )
       {
          $this->new_error_msg('El ejercicio '.$eje0->codejercicio.' está cerrado.');
       }
@@ -582,25 +610,36 @@ class megafacturador extends fs_controller
    private function generar_asientos()
    {
       $nuevos = 0;
-      $facli = new factura_cliente();
-      foreach($facli->all(0, 500) as $factura)
+      
+      $sql = "SELECT * FROM facturascli WHERE idasiento IS NULL";
+      $data = $this->db->select_limit($sql, 100, 0);
+      if($data)
       {
-         if( is_null($factura->idasiento) )
+         foreach($data as $d)
          {
-            $this->generar_asiento_cliente($factura);
-            $nuevos++;
+            $factura = new factura_cliente($d);
+            if( is_null($factura->idasiento) )
+            {
+               $this->generar_asiento_cliente($factura);
+               $nuevos++;
+            }
          }
       }
       $this->new_message($nuevos.' asientos generados para facturas de venta.');
       
       $nuevos = 0;
-      $fapro = new factura_proveedor();
-      foreach($fapro->all(0, 500) as $factura)
+      $sql = "SELECT * FROM facturasprov WHERE idasiento IS NULL";
+      $data = $this->db->select_limit($sql, 100, 0);
+      if($data)
       {
-         if( is_null($factura->idasiento) )
+         foreach($data as $d)
          {
-            $this->generar_asiento_proveedor($factura);
-            $nuevos++;
+            $factura = new factura_proveedor($d);
+            if( is_null($factura->idasiento) )
+            {
+               $this->generar_asiento_proveedor($factura);
+               $nuevos++;
+            }
          }
       }
       $this->new_message($nuevos.' asientos generados para facturas de compra.');
