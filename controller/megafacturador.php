@@ -1,7 +1,7 @@
 <?php
 /*
  * This file is part of FacturaSctipts
- * Copyright (C) 2014-2015  Carlos Garcia Gomez  neorazorx@gmail.com
+ * Copyright (C) 2014-2016  Carlos Garcia Gomez  neorazorx@gmail.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -250,7 +250,7 @@ class megafacturador extends fs_controller
           * comprobamos que la fecha de la factura no esté dentro de un periodo de
           * IVA regularizado.
           */
-         $this->new_error_msg('El IVA de ese periodo ya ha sido regularizado. No se pueden añadir más facturas en esa fecha.');
+         $this->new_error_msg('El '.FS_IVA.' de ese periodo ya ha sido regularizado. No se pueden añadir más facturas en esa fecha.');
       }
       else if( $factura->save() )
       {
@@ -326,9 +326,9 @@ class megafacturador extends fs_controller
          $this->new_error_msg("¡Imposible guardar la factura!");
    }
    
-   private function generar_asiento_cliente($factura)
+   private function generar_asiento_cliente($factura, $forzar = FALSE)
    {
-      if($this->empresa->contintegrada)
+      if($this->empresa->contintegrada OR $forzar)
       {
          $asiento_factura = new asiento_factura();
          $asiento_factura->generar_asiento_venta($factura);
@@ -430,7 +430,7 @@ class megafacturador extends fs_controller
           * comprobamos que la fecha de la factura no esté dentro de un periodo de
           * IVA regularizado.
           */
-         $this->new_error_msg('El IVA de ese periodo ya ha sido regularizado. No se pueden añadir más facturas en esa fecha.');
+         $this->new_error_msg('El '.FS_IVA.' de ese periodo ya ha sido regularizado. No se pueden añadir más facturas en esa fecha.');
       }
       else if( $factura->save() )
       {
@@ -506,9 +506,9 @@ class megafacturador extends fs_controller
          $this->new_error_msg("¡Imposible guardar la factura!");
    }
    
-   private function generar_asiento_proveedor($factura)
+   private function generar_asiento_proveedor($factura, $forzar = FALSE)
    {
-      if($this->empresa->contintegrada)
+      if($this->empresa->contintegrada OR $forzar)
       {
          $asiento_factura = new asiento_factura();
          $asiento_factura->generar_asiento_compra($factura);
@@ -620,7 +620,7 @@ class megafacturador extends fs_controller
             $factura = new factura_cliente($d);
             if( is_null($factura->idasiento) )
             {
-               $this->generar_asiento_cliente($factura);
+               $this->generar_asiento_cliente($factura, TRUE);
                $nuevos++;
             }
          }
@@ -637,7 +637,7 @@ class megafacturador extends fs_controller
             $factura = new factura_proveedor($d);
             if( is_null($factura->idasiento) )
             {
-               $this->generar_asiento_proveedor($factura);
+               $this->generar_asiento_proveedor($factura, TRUE);
                $nuevos++;
             }
          }
