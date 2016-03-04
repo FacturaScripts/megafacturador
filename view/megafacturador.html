@@ -50,13 +50,13 @@
          <div class="col-sm-4">
             <div class="checkbox">
                <label>
-                  <input type="checkbox" name="ventas" value="TRUE"{if="$fsc->opciones['ventas']"} checked=""{/if}/>
+                  <input type="checkbox" name="megafac_ventas" value="TRUE"{if="$fsc->opciones['megafac_ventas']"} checked=""{/if}/>
                   {#FS_ALBARANES#} de venta pendientes <span class="badge">{$fsc->total_pendientes_venta()}</span>
                </label>
             </div>
             <div class="checkbox">
                <label>
-                  <input type="checkbox" name="compras" value="TRUE"{if="$fsc->opciones['compras']"} checked=""{/if}/>
+                  <input type="checkbox" name="megafac_compras" value="TRUE"{if="$fsc->opciones['megafac_compras']"} checked=""{/if}/>
                   {#FS_ALBARANES#} de compra pendientes <span class="badge">{$fsc->total_pendientes_compra()}</span>
                </label>
             </div>
@@ -64,11 +64,11 @@
          <div class="col-sm-3">
             <div class="form-group">
                Serie:
-               <select name="codserie" class="form-control" onchange="this.form.submit();">
+               <select name="megafac_codserie" class="form-control" onchange="this.form.submit();">
                   <option value="">Todas</option>
                   <option value="">------</option>
                   {loop="$fsc->serie->all()"}
-                     {if="$fsc->opciones['codserie']==$value->codserie"}
+                     {if="$fsc->opciones['megafac_codserie']==$value->codserie"}
                      <option value="{$value->codserie}" selected="">{$value->descripcion}</option>
                      {else}
                      <option value="{$value->codserie}">{$value->descripcion}</option>
@@ -80,9 +80,9 @@
          <div class="col-sm-3">
             <div class="form-group">
                Facturar con fecha:
-               <select name="fecha" class="form-control">
+               <select name="megafac_fecha" class="form-control" onchange="this.form.submit();">
                   <option value="hoy">Hoy</option>
-                  {if="$fsc->opciones['fecha']=='albaran'"}
+                  {if="$fsc->opciones['megafac_fecha']=='albaran'"}
                   <option value="albaran" selected="">El mismo día del {#FS_ALBARAN#}</option>
                   {else}
                   <option value="albaran">El mismo día del {#FS_ALBARAN#}</option>

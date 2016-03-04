@@ -63,22 +63,27 @@ class megafacturador extends fs_controller
       $this->url_recarga = FALSE;
       
       $this->opciones = array(
-          'ventas' => TRUE,
-          'compras' => TRUE,
-          'codserie' => '',
-          'fecha' => 'hoy'
+          'megafac_ventas' => 1,
+          'megafac_compras' => 1,
+          'megafac_codserie' => '',
+          'megafac_fecha' => 'hoy'
       );
+      $fsvar = new fs_var();
+      $this->opciones = $fsvar->array_get($this->opciones, FALSE);
       
-      if( isset($_REQUEST['fecha']) )
+      if( isset($_REQUEST['megafac_fecha']) )
       {
-         $this->opciones['codserie'] = $_REQUEST['codserie'];
-         $this->opciones['fecha'] = $_REQUEST['fecha'];
+         $this->opciones['megafac_ventas'] = isset($_REQUEST['megafac_ventas']) ? 1 : 0;
+         $this->opciones['megafac_compras'] = isset($_REQUEST['megafac_compras']) ? 1 : 0;
+         $this->opciones['megafac_codserie'] = $_REQUEST['megafac_codserie'];
+         $this->opciones['megafac_fecha'] = $_REQUEST['megafac_fecha'];
+         $fsvar->array_save($this->opciones);
          
          if($_REQUEST['procesar'] == 'TRUE')
          {
             $recargar = FALSE;
             $this->total = 0;
-            if( isset($_REQUEST['ventas']) )
+            if($this->opciones['megafac_ventas'])
             {
                foreach($this->pendientes_venta() as $alb)
                {
@@ -87,11 +92,9 @@ class megafacturador extends fs_controller
                }
                $this->new_message($this->total.' '.FS_ALBARANES.' de cliente facturados.');
             }
-            else
-               $this->opciones['ventas'] = FALSE;
             
             $this->total = 0;
-            if( isset($_REQUEST['compras']) )
+            if($this->opciones['megafac_compras'])
             {
                foreach($this->pendientes_compra() as $alb)
                {
@@ -100,8 +103,6 @@ class megafacturador extends fs_controller
                }
                $this->new_message($this->total.' '.FS_ALBARANES.' de proveedor facturados.');
             }
-            else
-               $this->opciones['compras'] = FALSE;
             
             /// ¿Recargamos?
             if( count($this->get_errors()) > 0 )
@@ -110,17 +111,17 @@ class megafacturador extends fs_controller
             }
             else if($recargar)
             {
-               $this->url_recarga = $this->url().'&fecha='.$this->opciones['fecha']
-                       .'&codserie='.$this->opciones['codserie'].'&procesar=TRUE';
+               $this->url_recarga = $this->url().'&megafac_fecha='.$this->opciones['megafac_fecha']
+                       .'&megafac_codserie='.$this->opciones['megafac_codserie'].'&procesar=TRUE';
                
-               if( isset($_REQUEST['ventas']) )
+               if($this->opciones['megafac_ventas'])
                {
-                  $this->url_recarga .= '&ventas=TRUE';
+                  $this->url_recarga .= '&megafac_ventas=TRUE';
                }
                
-               if( isset($_REQUEST['compras']) )
+               if($this->opciones['megafac_compras'])
                {
-                  $this->url_recarga .= '&compras=TRUE';
+                  $this->url_recarga .= '&megafac_compras=TRUE';
                }
                
                $this->new_message('Recargando...');
@@ -139,6 +140,10 @@ class megafacturador extends fs_controller
       $this->numasientos = $this->num_asientos_a_generar();
    }
    
+   /**
+    * Genera una factura a partir de un array de albaranes.
+    * @param albaran_cliente $albaranes
+    */
    private function generar_factura_cliente($albaranes)
    {
       $continuar = TRUE;
@@ -154,8 +159,17 @@ class megafacturador extends fs_controller
       $factura->numero2 = $albaranes[0]->numero2;
       $factura->observaciones = $albaranes[0]->observaciones;
       
+      $factura->envio_apellidos = $albaranes[0]->envio_apellidos;
+      $factura->envio_ciudad = $albaranes[0]->envio_ciudad;
+      $factura->envio_codigo = $albaranes[0]->envio_codigo;
+      $factura->envio_codpostal = $albaranes[0]->envio_codpostal;
+      $factura->envio_codtrans = $albaranes[0]->envio_codtrans;
+      $factura->envio_direccion = $albaranes[0]->envio_direccion;
+      $factura->envio_nombre = $albaranes[0]->envio_nombre;
+      $factura->envio_provincia = $albaranes[0]->envio_provincia;
+      
       /// asignamos fecha y ejercicio usando la del albarán
-      if( $_REQUEST['fecha'] == 'albaran' )
+      if( $this->opciones['megafac_fecha'] == 'albaran' )
       {
          $eje0 = $this->ejercicio->get($albaranes[0]->codejercicio);
          if($eje0)
@@ -360,7 +374,7 @@ class megafacturador extends fs_controller
       $factura->observaciones = $albaranes[0]->observaciones;
       
       /// asignamos fecha y ejercicio usando la del albarán
-      if( $_REQUEST['fecha'] == 'albaran' )
+      if( $this->opciones['megafac_fecha'] == 'albaran' )
       {
          $eje0 = $this->ejercicio->get($albaranes[0]->codejercicio);
          if($eje0)
@@ -530,9 +544,9 @@ class megafacturador extends fs_controller
       $alblist = array();
       
       $sql = "SELECT * FROM albaranescli WHERE ptefactura = true";
-      if($this->opciones['codserie'] != '')
+      if($this->opciones['megafac_codserie'] != '')
       {
-         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['codserie']);
+         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['megafac_codserie']);
       }
       
       $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 25, 0);
@@ -552,9 +566,9 @@ class megafacturador extends fs_controller
       $total = 0;
       
       $sql = "SELECT count(idalbaran) as total FROM albaranescli WHERE ptefactura = true";
-      if($this->opciones['codserie'] != '')
+      if($this->opciones['megafac_codserie'] != '')
       {
-         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['codserie']);
+         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['megafac_codserie']);
       }
       
       $data = $this->db->select($sql);
@@ -571,9 +585,9 @@ class megafacturador extends fs_controller
       $alblist = array();
       
       $sql = "SELECT * FROM albaranesprov WHERE ptefactura = true";
-      if($this->opciones['codserie'] != '')
+      if($this->opciones['megafac_codserie'] != '')
       {
-         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['codserie']);
+         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['megafac_codserie']);
       }
       
       $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 25, 0);
@@ -593,9 +607,9 @@ class megafacturador extends fs_controller
       $total = 0;
       
       $sql = "SELECT count(idalbaran) as total FROM albaranesprov WHERE ptefactura = true";
-      if($this->opciones['codserie'] != '')
+      if($this->opciones['megafac_codserie'] != '')
       {
-         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['codserie']);
+         $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['megafac_codserie']);
       }
       
       $data = $this->db->select($sql);
