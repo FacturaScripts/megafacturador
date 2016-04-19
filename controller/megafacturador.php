@@ -159,6 +159,17 @@ class megafacturador extends fs_controller
       $factura->numero2 = $albaranes[0]->numero2;
       $factura->observaciones = $albaranes[0]->observaciones;
       
+      $factura->apartado = $albaranes[0]->apartado;
+      $factura->cifnif = $albaranes[0]->cifnif;
+      $factura->ciudad = $albaranes[0]->ciudad;
+      $factura->codcliente = $albaranes[0]->codcliente;
+      $factura->coddir = $albaranes[0]->coddir;
+      $factura->codpais = $albaranes[0]->codpais;
+      $factura->codpostal = $albaranes[0]->codpostal;
+      $factura->direccion = $albaranes[0]->direccion;
+      $factura->nombrecliente = $albaranes[0]->nombrecliente;
+      $factura->provincia = $albaranes[0]->provincia;
+      
       $factura->envio_apellidos = $albaranes[0]->envio_apellidos;
       $factura->envio_ciudad = $albaranes[0]->envio_ciudad;
       $factura->envio_codigo = $albaranes[0]->envio_codigo;
@@ -198,12 +209,14 @@ class megafacturador extends fs_controller
       }
       
       /// obtenemos los datos actuales del cliente, por si ha habido cambios
+      /// desactivado hasta actualizar facturacion_base
+      /*
       $cliente = $this->cliente->get($albaranes[0]->codcliente);
       if($cliente)
       {
          foreach($cliente->get_direcciones() as $dir)
          {
-            if($dir->domfacturacion)
+            if( $dir->domfacturacion AND strtotime($dir->fecha) > strtotime($albaranes[0]->fecha) )
             {
                $factura->apartado = $dir->apartado;
                $factura->cifnif = $cliente->cifnif;
@@ -219,6 +232,8 @@ class megafacturador extends fs_controller
             }
          }
       }
+       * 
+       */
       
       /// calculamos neto e iva
       foreach($albaranes as $alb)
