@@ -124,7 +124,7 @@ class megafacturador extends fs_controller
                   $this->url_recarga .= '&megafac_compras=TRUE';
                }
                
-               $this->new_message('Recargando...');
+               $this->new_message('Recargando... &nbsp; <i class="fa fa-refresh fa-spin"></i>');
             }
             else
             {
