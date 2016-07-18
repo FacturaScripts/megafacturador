@@ -20,14 +20,14 @@
    }
 </script>
 
-<div class="container">
+<div class="container-fluid">
    <form name="f_facturador" class="form" action="{$fsc->url()}" method="post">
       <input type="hidden" name="procesar" value="FALSE"/>
       <div class="row">
          <div class="col-sm-12">
             <div class="page-header">
                <h1>
-                  <span class="glyphicon glyphicon-king" aria-hidden="true"></span>
+                  <i class="fa fa-check-square-o" aria-hidden="true"></i>
                   MegaFacturador
                   <a href="{$fsc->url()}" class="btn btn-xs btn-default" title="Recargar la página">
                      <span class="glyphicon glyphicon-refresh"></span>
@@ -42,12 +42,13 @@
                </h1>
                <p class="help-block">
                   Elige qué es lo que quieres facturar, cómo y pulsa el botón empezar.
+                  Se aprobarán los {#FS_ALBARANES#} seleccionados y se generarán las facturas.
                </p>
             </div>
          </div>
       </div>
       <div class="row">
-         <div class="col-sm-4">
+         <div class="col-sm-3">
             <div class="checkbox">
                <label>
                   <input type="checkbox" name="megafac_ventas" value="TRUE"{if="$fsc->opciones['megafac_ventas']"} checked=""{/if}/>
@@ -61,7 +62,7 @@
                </label>
             </div>
          </div>
-         <div class="col-sm-3">
+         <div class="col-sm-2">
             <div class="form-group">
                <span class="text-capitalize">{#FS_SERIE#}:</span>
                <select name="megafac_codserie" class="form-control" onchange="this.form.submit();">
@@ -75,6 +76,12 @@
                      {/if}
                   {/loop}
                </select>
+            </div>
+         </div>
+         <div class="col-sm-2">
+            <div class="form-group">
+               Hasta:
+               <input type="text" name="megafac_hasta" value="{$fsc->opciones['megafac_hasta']}" class="form-control datepicker" autocomplete="off" onchange="this.form.submit();"/>
             </div>
          </div>
          <div class="col-sm-3">
@@ -93,7 +100,7 @@
          <div class="col-sm-2 text-right">
             <br/>
             <button class="btn btn-sm btn-primary" type="button" onclick="this.disabled=true;facturar()">
-               <span class="glyphicon glyphicon-play"></span> &nbsp; Empezar
+               <span class="glyphicon glyphicon-play"></span>&nbsp; Empezar
             </button>
          </div>
       </div>

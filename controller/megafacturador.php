@@ -48,7 +48,7 @@ class megafacturador extends fs_controller
    
    public function __construct()
    {
-      parent::__construct('megafacturador', 'MegaFacturador', 'ventas', FALSE, TRUE);
+      parent::__construct('megafacturador', 'MegaFacturador', 'ventas', FALSE, TRUE, TRUE);
    }
    
    protected function private_core()
@@ -66,10 +66,14 @@ class megafacturador extends fs_controller
           'megafac_ventas' => 1,
           'megafac_compras' => 1,
           'megafac_codserie' => '',
-          'megafac_fecha' => 'hoy'
+          'megafac_fecha' => 'hoy',
+          'megafac_hasta' => date('d-m-Y'),
       );
       $fsvar = new fs_var();
       $this->opciones = $fsvar->array_get($this->opciones, FALSE);
+      
+      /// corregimos el formato de la fecha
+      $this->opciones['megafac_hasta'] = date('d-m-Y', strtotime($this->opciones['megafac_hasta']));
       
       if( isset($_REQUEST['megafac_fecha']) )
       {
@@ -77,6 +81,7 @@ class megafacturador extends fs_controller
          $this->opciones['megafac_compras'] = isset($_REQUEST['megafac_compras']) ? 1 : 0;
          $this->opciones['megafac_codserie'] = $_REQUEST['megafac_codserie'];
          $this->opciones['megafac_fecha'] = $_REQUEST['megafac_fecha'];
+         $this->opciones['megafac_hasta'] = $_REQUEST['megafac_hasta'];
          $fsvar->array_save($this->opciones);
          
          if($_REQUEST['procesar'] == 'TRUE')
@@ -87,8 +92,11 @@ class megafacturador extends fs_controller
             {
                foreach($this->pendientes_venta() as $alb)
                {
-                  $this->generar_factura_cliente( array($alb) );
-                  $recargar = TRUE;
+                  if( strtotime($alb->fecha) <= strtotime($this->opciones['megafac_hasta']) )
+                  {
+                     $this->generar_factura_cliente( array($alb) );
+                     $recargar = TRUE;
+                  }
                }
                $this->new_message($this->total.' '.FS_ALBARANES.' de cliente facturados.');
             }
@@ -98,8 +106,11 @@ class megafacturador extends fs_controller
             {
                foreach($this->pendientes_compra() as $alb)
                {
-                  $this->generar_factura_proveedor( array($alb) );
-                  $recargar = TRUE;
+                  if( strtotime($alb->fecha) <= strtotime($this->opciones['megafac_hasta']) )
+                  {
+                     $this->generar_factura_proveedor( array($alb) );
+                     $recargar = TRUE;
+                  }
                }
                $this->new_message($this->total.' '.FS_ALBARANES.' de proveedor facturados.');
             }
@@ -112,7 +123,9 @@ class megafacturador extends fs_controller
             else if($recargar)
             {
                $this->url_recarga = $this->url().'&megafac_fecha='.$this->opciones['megafac_fecha']
-                       .'&megafac_codserie='.$this->opciones['megafac_codserie'].'&procesar=TRUE';
+                       .'&megafac_hasta='.$this->opciones['megafac_hasta']
+                       .'&megafac_codserie='.$this->opciones['megafac_codserie']
+                       .'&procesar=TRUE';
                
                if($this->opciones['megafac_ventas'])
                {
@@ -136,8 +149,33 @@ class megafacturador extends fs_controller
       {
          $this->generar_asientos();
       }
+      else
+      {
+         $this->share_extensions();
+      }
       
       $this->numasientos = $this->num_asientos_a_generar();
+   }
+   
+   private function share_extensions()
+   {
+      $fsext = new fs_extension();
+      $fsext->name = 'megafacturar_albpro';
+      $fsext->from = __CLASS__;
+      $fsext->to = 'compras_albaranes';
+      $fsext->type = 'button';
+      $fsext->text = '<i class="fa fa-check-square-o" aria-hidden="true"></i>'
+              . '<span class="hidden-xs">&nbsp; megafacturador</span>';
+      $fsext->save();
+      
+      $fsext2 = new fs_extension();
+      $fsext2->name = 'megafacturar_albcli';
+      $fsext2->from = __CLASS__;
+      $fsext2->to = 'ventas_albaranes';
+      $fsext2->type = 'button';
+      $fsext2->text = '<i class="fa fa-check-square-o" aria-hidden="true"></i>'
+              . '<span class="hidden-xs">&nbsp; megafacturador</span>';
+      $fsext2->save();
    }
    
    /**
