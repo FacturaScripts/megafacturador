@@ -66,7 +66,7 @@ class megafacturador extends fs_controller
           'megafac_ventas' => 1,
           'megafac_compras' => 1,
           'megafac_codserie' => '',
-          'megafac_fecha' => 'hoy',
+          'megafac_fecha' => 'albaran',
           'megafac_hasta' => date('d-m-Y'),
       );
       $fsvar = new fs_var();
@@ -245,33 +245,6 @@ class megafacturador extends fs_controller
             $factura->set_fecha_hora($factura->fecha, $factura->hora);
          }
       }
-      
-      /// obtenemos los datos actuales del cliente, por si ha habido cambios
-      /// desactivado hasta actualizar facturacion_base
-      /*
-      $cliente = $this->cliente->get($albaranes[0]->codcliente);
-      if($cliente)
-      {
-         foreach($cliente->get_direcciones() as $dir)
-         {
-            if( $dir->domfacturacion AND strtotime($dir->fecha) > strtotime($albaranes[0]->fecha) )
-            {
-               $factura->apartado = $dir->apartado;
-               $factura->cifnif = $cliente->cifnif;
-               $factura->ciudad = $dir->ciudad;
-               $factura->codcliente = $cliente->codcliente;
-               $factura->coddir = $dir->id;
-               $factura->codpais = $dir->codpais;
-               $factura->codpostal = $dir->codpostal;
-               $factura->direccion = $dir->direccion;
-               $factura->nombrecliente = $cliente->razonsocial;
-               $factura->provincia = $dir->provincia;
-               break;
-            }
-         }
-      }
-       * 
-       */
       
       /// calculamos neto e iva
       foreach($albaranes as $alb)
