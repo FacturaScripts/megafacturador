@@ -390,6 +390,7 @@ class megafacturador extends fs_controller
       $continuar = TRUE;
       
       $factura = new factura_proveedor();
+      $factura->codagente = $albaranes[0]->codagente;
       $factura->codalmacen = $albaranes[0]->codalmacen;
       $factura->coddivisa = $albaranes[0]->coddivisa;
       $factura->tasaconv = $albaranes[0]->tasaconv;
