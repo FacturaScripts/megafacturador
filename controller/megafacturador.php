@@ -208,9 +208,11 @@ class megafacturador extends fs_controller
       $factura->nombrecliente = $albaranes[0]->nombrecliente;
       $factura->provincia = $albaranes[0]->provincia;
       
+      $factura->envio_apartado = $albaranes[0]->envio_apartado;
       $factura->envio_apellidos = $albaranes[0]->envio_apellidos;
       $factura->envio_ciudad = $albaranes[0]->envio_ciudad;
       $factura->envio_codigo = $albaranes[0]->envio_codigo;
+      $factura->envio_codpais = $albaranes[0]->envio_codpais;
       $factura->envio_codpostal = $albaranes[0]->envio_codpostal;
       $factura->envio_codtrans = $albaranes[0]->envio_codtrans;
       $factura->envio_direccion = $albaranes[0]->envio_direccion;
