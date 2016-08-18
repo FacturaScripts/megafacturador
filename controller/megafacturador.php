@@ -401,6 +401,8 @@ class megafacturador extends fs_controller
       $factura->irpf = $albaranes[0]->irpf;
       $factura->numproveedor = $albaranes[0]->numproveedor;
       $factura->observaciones = $albaranes[0]->observaciones;
+      $factura->cifnif = $albaranes[0]->cifnif;
+      $factura->nombre = $albaranes[0]->nombre;
       
       /// asignamos fecha y ejercicio usando la del albarán
       if( $this->opciones['megafac_fecha'] == 'albaran' )
