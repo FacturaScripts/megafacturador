@@ -148,6 +148,17 @@ class megafacturador extends fs_controller
       else if( isset($_GET['genasientos']) )
       {
          $this->generar_asientos();
+         
+         /// ¿Recargamos?
+         if( count($this->get_errors()) > 0 )
+         {
+            $this->new_error_msg('Se han producido errores. Proceso detenido.');
+         }
+         else if( $this->num_asientos_a_generar() > 0 )
+         {
+            $this->url_recarga = $this->url().'&genasientos=TRUE';
+            $this->new_message('Recargando... &nbsp; <i class="fa fa-refresh fa-spin"></i>');
+         }
       }
       else
       {
@@ -222,12 +233,12 @@ class megafacturador extends fs_controller
       /// asignamos fecha y ejercicio usando la del albarán
       if( $this->opciones['megafac_fecha'] == 'albaran' )
       {
-         $eje0 = $this->ejercicio->get($albaranes[0]->codejercicio);
+         $eje0 = $this->ejercicio->get_by_fecha($albaranes[0]->fecha);
          if($eje0)
          {
             if( $eje0->abierto() )
             {
-               $factura->codejercicio = $albaranes[0]->codejercicio;
+               $factura->codejercicio = $eje0->codejercicio;
                $factura->set_fecha_hora($albaranes[0]->fecha, $albaranes[0]->hora);
             }
          }
@@ -407,12 +418,12 @@ class megafacturador extends fs_controller
       /// asignamos fecha y ejercicio usando la del albarán
       if( $this->opciones['megafac_fecha'] == 'albaran' )
       {
-         $eje0 = $this->ejercicio->get($albaranes[0]->codejercicio);
+         $eje0 = $this->ejercicio->get_by_fecha($albaranes[0]->fecha);
          if($eje0)
          {
             if( $eje0->abierto() )
             {
-               $factura->codejercicio = $albaranes[0]->codejercicio;
+               $factura->codejercicio = $eje0->codejercicio;
                $factura->set_fecha_hora($albaranes[0]->fecha, $albaranes[0]->hora);
             }
          }
@@ -657,7 +668,7 @@ class megafacturador extends fs_controller
       $nuevos = 0;
       
       $sql = "SELECT * FROM facturascli WHERE idasiento IS NULL";
-      $data = $this->db->select_limit($sql, 100, 0);
+      $data = $this->db->select_limit($sql, 50, 0);
       if($data)
       {
          foreach($data as $d)
@@ -674,7 +685,7 @@ class megafacturador extends fs_controller
       
       $nuevos = 0;
       $sql = "SELECT * FROM facturasprov WHERE idasiento IS NULL";
-      $data = $this->db->select_limit($sql, 100, 0);
+      $data = $this->db->select_limit($sql, 50, 0);
       if($data)
       {
          foreach($data as $d)
