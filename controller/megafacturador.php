@@ -472,6 +472,16 @@ class megafacturador extends fs_controller
       $factura->totalrecargo = round($factura->totalrecargo, FS_NF0);
       $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
       
+      /// comprobamos la forma de pago para saber si hay que marcar la factura como pagada
+      $formapago = $this->forma_pago->get($factura->codpago);
+      if($formapago)
+      {
+         if($formapago->genrecibos == 'Pagados')
+         {
+            $factura->pagada = TRUE;
+         }
+      }
+      
       if( !$eje0 )
       {
          $this->new_error_msg("Ningún ejercicio encontrado.");
