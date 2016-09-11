@@ -86,79 +86,12 @@ class megafacturador extends fs_controller
          
          if($_REQUEST['procesar'] == 'TRUE')
          {
-            $recargar = FALSE;
-            $this->total = 0;
-            if($this->opciones['megafac_ventas'])
-            {
-               foreach($this->pendientes_venta() as $alb)
-               {
-                  if( strtotime($alb->fecha) <= strtotime($this->opciones['megafac_hasta']) )
-                  {
-                     $this->generar_factura_cliente( array($alb) );
-                     $recargar = TRUE;
-                  }
-               }
-               $this->new_message($this->total.' '.FS_ALBARANES.' de cliente facturados.');
-            }
-            
-            $this->total = 0;
-            if($this->opciones['megafac_compras'])
-            {
-               foreach($this->pendientes_compra() as $alb)
-               {
-                  if( strtotime($alb->fecha) <= strtotime($this->opciones['megafac_hasta']) )
-                  {
-                     $this->generar_factura_proveedor( array($alb) );
-                     $recargar = TRUE;
-                  }
-               }
-               $this->new_message($this->total.' '.FS_ALBARANES.' de proveedor facturados.');
-            }
-            
-            /// ¿Recargamos?
-            if( count($this->get_errors()) > 0 )
-            {
-               $this->new_error_msg('Se han producido errores. Proceso detenido.');
-            }
-            else if($recargar)
-            {
-               $this->url_recarga = $this->url().'&megafac_fecha='.$this->opciones['megafac_fecha']
-                       .'&megafac_hasta='.$this->opciones['megafac_hasta']
-                       .'&megafac_codserie='.$this->opciones['megafac_codserie']
-                       .'&procesar=TRUE';
-               
-               if($this->opciones['megafac_ventas'])
-               {
-                  $this->url_recarga .= '&megafac_ventas=TRUE';
-               }
-               
-               if($this->opciones['megafac_compras'])
-               {
-                  $this->url_recarga .= '&megafac_compras=TRUE';
-               }
-               
-               $this->new_message('Recargando... &nbsp; <i class="fa fa-refresh fa-spin"></i>');
-            }
-            else
-            {
-               $this->new_advice('Finalizado. <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>');
-            }
+            $this->generar_facturas();
          }
       }
       else if( isset($_GET['genasientos']) )
       {
          $this->generar_asientos();
-         
-         /// ¿Recargamos?
-         if( count($this->get_errors()) > 0 )
-         {
-            $this->new_error_msg('Se han producido errores. Proceso detenido.');
-         }
-         else if( $this->num_asientos_a_generar() > 0 )
-         {
-            $this->url_recarga = $this->url().'&genasientos=TRUE';
-            $this->new_message('Recargando... &nbsp; <i class="fa fa-refresh fa-spin"></i>');
-         }
       }
       else
       {
@@ -166,6 +99,75 @@ class megafacturador extends fs_controller
       }
       
       $this->numasientos = $this->num_asientos_a_generar();
+   }
+   
+   private function generar_facturas()
+   {
+      $recargar = FALSE;
+      $this->total = 0;
+      if($this->opciones['megafac_ventas'])
+      {
+         foreach($this->pendientes_venta() as $alb)
+         {
+            if( $this->generar_factura_cliente( array($alb) ) )
+            {
+               $recargar = TRUE;
+            }
+            else
+            {
+               break;
+            }
+         }
+         
+         $this->new_message($this->total.' '.FS_ALBARANES.' de cliente facturados.');
+      }
+      
+      $this->total = 0;
+      if($this->opciones['megafac_compras'])
+      {
+         foreach($this->pendientes_compra() as $alb)
+         {
+            if( $this->generar_factura_proveedor( array($alb) ) )
+            {
+               $recargar = TRUE;
+            }
+            else
+            {
+               break;
+            }
+         }
+         
+         $this->new_message($this->total.' '.FS_ALBARANES.' de proveedor facturados.');
+      }
+      
+      /// ¿Recargamos?
+      if( count($this->get_errors()) > 0 )
+      {
+         $this->new_error_msg('Se han producido errores. Proceso detenido.');
+      }
+      else if($recargar)
+      {
+         $this->url_recarga = $this->url().'&megafac_fecha='.$this->opciones['megafac_fecha']
+                 .'&megafac_hasta='.$this->opciones['megafac_hasta']
+                 .'&megafac_codserie='.$this->opciones['megafac_codserie']
+                 .'&procesar=TRUE';
+         
+         if($this->opciones['megafac_ventas'])
+         {
+            $this->url_recarga .= '&megafac_ventas=TRUE';
+         }
+         
+         if($this->opciones['megafac_compras'])
+         {
+            $this->url_recarga .= '&megafac_compras=TRUE';
+         }
+         
+         $this->new_message('Recargando... &nbsp; <i class="fa fa-refresh fa-spin"></i>');
+      }
+      else
+      {
+         $this->new_advice('Finalizado. <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>');
+      }
    }
    
    private function share_extensions()
@@ -289,13 +291,15 @@ class megafacturador extends fs_controller
          $factura->vencimiento = Date('d-m-Y', strtotime($factura->fecha.' '.$formapago->vencimiento));
       }
       
-      if( !$eje0 )
+      if(!$eje0)
       {
          $this->new_error_msg("Ningún ejercicio encontrado.");
+         $continuar = FALSE;
       }
       else if( !$eje0->abierto() )
       {
          $this->new_error_msg('El ejercicio '.$eje0->codejercicio.' está cerrado.');
+         $continuar = FALSE;
       }
       else if( $this->regularizacion->get_fecha_inside($factura->fecha) )
       {
@@ -304,6 +308,7 @@ class megafacturador extends fs_controller
           * IVA regularizado.
           */
          $this->new_error_msg('El '.FS_IVA.' de ese periodo ya ha sido regularizado. No se pueden añadir más facturas en esa fecha.');
+         $continuar = FALSE;
       }
       else if( $factura->save() )
       {
@@ -350,9 +355,9 @@ class megafacturador extends fs_controller
                }
             }
             
-            if( $continuar )
+            if($continuar)
             {
-               $this->generar_asiento_cliente($factura);
+               $continuar = $this->generar_asiento_cliente($factura);
                $this->total++;
             }
             else
@@ -377,14 +382,19 @@ class megafacturador extends fs_controller
       }
       else
          $this->new_error_msg("¡Imposible guardar la factura!");
+      
+      return $continuar;
    }
    
-   private function generar_asiento_cliente($factura, $forzar = FALSE)
+   private function generar_asiento_cliente($factura, $forzar = FALSE, $soloasiento = FALSE)
    {
+      $ok = TRUE;
+      
       if($this->empresa->contintegrada OR $forzar)
       {
          $asiento_factura = new asiento_factura();
-         $asiento_factura->generar_asiento_venta($factura);
+         $asiento_factura->soloasiento = $soloasiento;
+         $ok = $asiento_factura->generar_asiento_venta($factura);
          
          foreach($asiento_factura->errors as $err)
          {
@@ -396,6 +406,8 @@ class megafacturador extends fs_controller
             $this->new_message($msg);
          }
       }
+      
+      return $ok;
    }
    
    private function generar_factura_proveedor($albaranes)
@@ -482,13 +494,15 @@ class megafacturador extends fs_controller
          }
       }
       
-      if( !$eje0 )
+      if(!$eje0)
       {
          $this->new_error_msg("Ningún ejercicio encontrado.");
+         $continuar = FALSE;
       }
       else if( !$eje0->abierto() )
       {
          $this->new_error_msg('El ejercicio '.$eje0->codejercicio.' está cerrado.');
+         $continuar = FALSE;
       }
       else if( $this->regularizacion->get_fecha_inside($factura->fecha) )
       {
@@ -497,6 +511,7 @@ class megafacturador extends fs_controller
           * IVA regularizado.
           */
          $this->new_error_msg('El '.FS_IVA.' de ese periodo ya ha sido regularizado. No se pueden añadir más facturas en esa fecha.');
+         $continuar = FALSE;
       }
       else if( $factura->save() )
       {
@@ -543,9 +558,9 @@ class megafacturador extends fs_controller
                }
             }
             
-            if( $continuar )
+            if($continuar)
             {
-               $this->generar_asiento_proveedor($factura);
+               $continuar = $this->generar_asiento_proveedor($factura);
                $this->total++;
             }
             else
@@ -570,14 +585,19 @@ class megafacturador extends fs_controller
       }
       else
          $this->new_error_msg("¡Imposible guardar la factura!");
+      
+      return $continuar;
    }
    
-   private function generar_asiento_proveedor($factura, $forzar = FALSE)
+   private function generar_asiento_proveedor($factura, $forzar = FALSE, $soloasiento = FALSE)
    {
+      $ok = TRUE;
+      
       if($this->empresa->contintegrada OR $forzar)
       {
          $asiento_factura = new asiento_factura();
-         $asiento_factura->generar_asiento_compra($factura);
+         $asiento_factura->soloasiento = $soloasiento;
+         $ok = $asiento_factura->generar_asiento_compra($factura);
          
          foreach($asiento_factura->errors as $err)
          {
@@ -589,6 +609,8 @@ class megafacturador extends fs_controller
             $this->new_message($msg);
          }
       }
+      
+      return $ok;
    }
    
    public function pendientes_venta()
@@ -599,6 +621,10 @@ class megafacturador extends fs_controller
       if($this->opciones['megafac_codserie'] != '')
       {
          $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['megafac_codserie']);
+      }
+      if($this->opciones['megafac_hasta'])
+      {
+         $sql .= " AND fecha <= ".$this->serie->var2str($this->opciones['megafac_hasta']);
       }
       
       $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 25, 0);
@@ -622,6 +648,10 @@ class megafacturador extends fs_controller
       {
          $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['megafac_codserie']);
       }
+      if($this->opciones['megafac_hasta'])
+      {
+         $sql .= " AND fecha <= ".$this->serie->var2str($this->opciones['megafac_hasta']);
+      }
       
       $data = $this->db->select($sql);
       if($data)
@@ -640,6 +670,10 @@ class megafacturador extends fs_controller
       if($this->opciones['megafac_codserie'] != '')
       {
          $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['megafac_codserie']);
+      }
+      if($this->opciones['megafac_hasta'])
+      {
+         $sql .= " AND fecha <= ".$this->serie->var2str($this->opciones['megafac_hasta']);
       }
       
       $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 25, 0);
@@ -662,6 +696,10 @@ class megafacturador extends fs_controller
       if($this->opciones['megafac_codserie'] != '')
       {
          $sql .= " AND codserie = ".$this->serie->var2str($this->opciones['megafac_codserie']);
+      }
+      if($this->opciones['megafac_hasta'])
+      {
+         $sql .= " AND fecha <= ".$this->serie->var2str($this->opciones['megafac_hasta']);
       }
       
       $data = $this->db->select($sql);
@@ -686,8 +724,14 @@ class megafacturador extends fs_controller
             $factura = new factura_cliente($d);
             if( is_null($factura->idasiento) )
             {
-               $this->generar_asiento_cliente($factura, TRUE);
-               $nuevos++;
+               if( $this->generar_asiento_cliente($factura, TRUE, TRUE) )
+               {
+                  $nuevos++;
+               }
+               else
+               {
+                  break;
+               }
             }
          }
       }
@@ -703,12 +747,29 @@ class megafacturador extends fs_controller
             $factura = new factura_proveedor($d);
             if( is_null($factura->idasiento) )
             {
-               $this->generar_asiento_proveedor($factura, TRUE);
-               $nuevos++;
+               if( $this->generar_asiento_proveedor($factura, TRUE, TRUE) )
+               {
+                  $nuevos++;
+               }
+               else
+               {
+                  break;
+               }
             }
          }
       }
       $this->new_message($nuevos.' asientos generados para facturas de compra.');
+      
+      /// ¿Recargamos?
+      if( count($this->get_errors()) > 0 )
+      {
+         $this->new_error_msg('Se han producido errores. Proceso detenido.');
+      }
+      else if( $this->num_asientos_a_generar() > 0 )
+      {
+         $this->url_recarga = $this->url().'&genasientos=TRUE';
+         $this->new_message('Recargando... &nbsp; <i class="fa fa-refresh fa-spin"></i>');
+      }
    }
    
    private function num_asientos_a_generar()
