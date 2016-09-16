@@ -119,7 +119,10 @@ class megafacturador extends fs_controller
             }
          }
          
-         $this->new_message($this->total.' '.FS_ALBARANES.' de cliente facturados.');
+         if($recargar)
+         {
+            $this->new_message($this->total.' '.FS_ALBARANES.' de cliente facturados.');
+         }
       }
       
       $this->total = 0;
@@ -137,7 +140,10 @@ class megafacturador extends fs_controller
             }
          }
          
-         $this->new_message($this->total.' '.FS_ALBARANES.' de proveedor facturados.');
+         if($recargar)
+         {
+            $this->new_message($this->total.' '.FS_ALBARANES.' de proveedor facturados.');
+         }
       }
       
       /// ¿Recargamos?
