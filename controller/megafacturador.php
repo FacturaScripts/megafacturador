@@ -39,9 +39,12 @@ class megafacturador extends fs_controller
    public $serie;
    public $url_recarga;
    
+   private $asiento_factura;
    private $cliente;
    private $ejercicio;
+   private $ejercicios;
    private $forma_pago;
+   private $formas_pago;
    private $proveedor;
    private $regularizacion;
    private $total;
@@ -53,9 +56,12 @@ class megafacturador extends fs_controller
    
    protected function private_core()
    {
+      $this->asiento_factura = new asiento_factura();
       $this->cliente = new cliente();
       $this->ejercicio = new ejercicio();
+      $this->ejercicios = array();
       $this->forma_pago = new forma_pago();
+      $this->formas_pago = $this->forma_pago->all();
       $this->numasientos = 0;
       $this->proveedor = new proveedor();
       $this->regularizacion = new regularizacion_iva();
@@ -241,14 +247,11 @@ class megafacturador extends fs_controller
       /// asignamos fecha y ejercicio usando la del albarán
       if( $this->opciones['megafac_fecha'] == 'albaran' )
       {
-         $eje0 = $this->ejercicio->get_by_fecha($albaranes[0]->fecha);
+         $eje0 = $this->get_ejercicio($albaranes[0]->fecha);
          if($eje0)
          {
-            if( $eje0->abierto() )
-            {
-               $factura->codejercicio = $eje0->codejercicio;
-               $factura->set_fecha_hora($albaranes[0]->fecha, $albaranes[0]->hora);
-            }
+            $factura->codejercicio = $eje0->codejercicio;
+            $factura->set_fecha_hora($albaranes[0]->fecha, $albaranes[0]->hora);
          }
       }
       
@@ -287,7 +290,7 @@ class megafacturador extends fs_controller
       $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
       
       /// comprobamos la forma de pago para saber si hay que marcar la factura como pagada
-      $formapago = $this->forma_pago->get($factura->codpago);
+      $formapago = $this->get_forma_pago($factura->codpago);
       if($formapago)
       {
          if($formapago->genrecibos == 'Pagados')
@@ -300,11 +303,6 @@ class megafacturador extends fs_controller
       if(!$eje0)
       {
          $this->new_error_msg("Ningún ejercicio encontrado.");
-         $continuar = FALSE;
-      }
-      else if( !$eje0->abierto() )
-      {
-         $this->new_error_msg('El ejercicio '.$eje0->codejercicio.' está cerrado.');
          $continuar = FALSE;
       }
       else if( $this->regularizacion->get_fecha_inside($factura->fecha) )
@@ -398,16 +396,15 @@ class megafacturador extends fs_controller
       
       if($this->empresa->contintegrada OR $forzar)
       {
-         $asiento_factura = new asiento_factura();
-         $asiento_factura->soloasiento = $soloasiento;
-         $ok = $asiento_factura->generar_asiento_venta($factura);
+         $this->asiento_factura->soloasiento = $soloasiento;
+         $ok = $this->asiento_factura->generar_asiento_venta($factura);
          
-         foreach($asiento_factura->errors as $err)
+         foreach($this->asiento_factura->errors as $err)
          {
             $this->new_error_msg($err);
          }
          
-         foreach($asiento_factura->messages as $msg)
+         foreach($this->asiento_factura->messages as $msg)
          {
             $this->new_message($msg);
          }
@@ -436,14 +433,11 @@ class megafacturador extends fs_controller
       /// asignamos fecha y ejercicio usando la del albarán
       if( $this->opciones['megafac_fecha'] == 'albaran' )
       {
-         $eje0 = $this->ejercicio->get_by_fecha($albaranes[0]->fecha);
+         $eje0 = $this->get_ejercicio($albaranes[0]->fecha);
          if($eje0)
          {
-            if( $eje0->abierto() )
-            {
-               $factura->codejercicio = $eje0->codejercicio;
-               $factura->set_fecha_hora($albaranes[0]->fecha, $albaranes[0]->hora);
-            }
+            $factura->codejercicio = $eje0->codejercicio;
+            $factura->set_fecha_hora($albaranes[0]->fecha, $albaranes[0]->hora);
          }
       }
       
@@ -491,7 +485,7 @@ class megafacturador extends fs_controller
       $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
       
       /// comprobamos la forma de pago para saber si hay que marcar la factura como pagada
-      $formapago = $this->forma_pago->get($factura->codpago);
+      $formapago = $this->get_forma_pago($factura->codpago);
       if($formapago)
       {
          if($formapago->genrecibos == 'Pagados')
@@ -503,11 +497,6 @@ class megafacturador extends fs_controller
       if(!$eje0)
       {
          $this->new_error_msg("Ningún ejercicio encontrado.");
-         $continuar = FALSE;
-      }
-      else if( !$eje0->abierto() )
-      {
-         $this->new_error_msg('El ejercicio '.$eje0->codejercicio.' está cerrado.');
          $continuar = FALSE;
       }
       else if( $this->regularizacion->get_fecha_inside($factura->fecha) )
@@ -601,16 +590,15 @@ class megafacturador extends fs_controller
       
       if($this->empresa->contintegrada OR $forzar)
       {
-         $asiento_factura = new asiento_factura();
-         $asiento_factura->soloasiento = $soloasiento;
-         $ok = $asiento_factura->generar_asiento_compra($factura);
+         $this->asiento_factura->soloasiento = $soloasiento;
+         $ok = $this->asiento_factura->generar_asiento_compra($factura);
          
-         foreach($asiento_factura->errors as $err)
+         foreach($this->asiento_factura->errors as $err)
          {
             $this->new_error_msg($err);
          }
          
-         foreach($asiento_factura->messages as $msg)
+         foreach($this->asiento_factura->messages as $msg)
          {
             $this->new_message($msg);
          }
@@ -633,7 +621,7 @@ class megafacturador extends fs_controller
          $sql .= " AND fecha <= ".$this->serie->var2str($this->opciones['megafac_hasta']);
       }
       
-      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 25, 0);
+      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 20, 0);
       if($data)
       {
          foreach($data as $d)
@@ -682,7 +670,7 @@ class megafacturador extends fs_controller
          $sql .= " AND fecha <= ".$this->serie->var2str($this->opciones['megafac_hasta']);
       }
       
-      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 25, 0);
+      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 20, 0);
       if($data)
       {
          foreach($data as $d)
@@ -797,5 +785,39 @@ class megafacturador extends fs_controller
       }
       
       return $num;
+   }
+   
+   private function get_ejercicio($fecha)
+   {
+      if( isset($this->ejercicios[$fecha]) )
+      {
+         return $this->ejercicios[$fecha];
+      }
+      else
+      {
+         $eje = $this->ejercicio->get_by_fecha($fecha);
+         if($eje)
+         {
+            $this->ejercicios[$fecha] = $eje;
+         }
+         
+         return $eje;
+      }
+   }
+   
+   private function get_forma_pago($codpago)
+   {
+      $fp = FALSE;
+      
+      foreach($this->formas_pago as $fp0)
+      {
+         if($fp0->codpago == $codpago)
+         {
+            $fp = $fp0;
+            break;
+         }
+      }
+      
+      return $fp;
    }
 }
