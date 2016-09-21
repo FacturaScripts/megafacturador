@@ -621,7 +621,7 @@ class megafacturador extends fs_controller
          $sql .= " AND fecha <= ".$this->serie->var2str($this->opciones['megafac_hasta']);
       }
       
-      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 20, 0);
+      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC, hora ASC', 20, 0);
       if($data)
       {
          foreach($data as $d)
@@ -670,7 +670,7 @@ class megafacturador extends fs_controller
          $sql .= " AND fecha <= ".$this->serie->var2str($this->opciones['megafac_hasta']);
       }
       
-      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC', 20, 0);
+      $data = $this->db->select_limit($sql.' ORDER BY fecha ASC, hora ASC', 20, 0);
       if($data)
       {
          foreach($data as $d)
