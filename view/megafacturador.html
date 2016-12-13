@@ -117,8 +117,7 @@
    <div class="row">
       <div class="col-sm-3">
          <a href="{$fsc->url()}&genasientos=TRUE" class="btn btn-default btn-block">
-            <span class="glyphicon glyphicon-paperclip"></span>
-            &nbsp; Generar asientos
+            <span class="glyphicon glyphicon-paperclip"></span>&nbsp; Generar asientos
             {if="$fsc->numasientos>0"}
             <span class="badge">{$fsc->numasientos}</span>
             {/if}
@@ -131,6 +130,13 @@
             generan automáticamente, pero si por algún motivo tienes facturas sin
             asientos o quieres generarlos ahora, simplemente pulsa el botón.
          </p>
+         {if="!$fsc->empresa->contintegrada"}
+         <p class="help-block">
+            <span class="glyphicon glyphicon-info-sign"></span>
+            Activa la contabilidad integrada en "Admin &gt; Empresa &gt; Facturación"
+            para que los asientos se generen automáticamente.
+         </p>
+         {/if}
       </div>
    </div>
 </div>
