@@ -320,7 +320,8 @@ class megafacturador extends fs_controller
           * comprobamos que la fecha de la factura no esté dentro de un periodo de
           * IVA regularizado.
           */
-         $this->new_error_msg('El '.FS_IVA.' de ese periodo ya ha sido regularizado. No se pueden añadir más facturas en esa fecha.');
+         $this->new_error_msg('El '.FS_IVA.' de ese periodo ya ha sido regularizado.'
+                 . ' No se pueden añadir más facturas en esa fecha.');
          $continuar = FALSE;
       }
       else if( $factura->save() )
@@ -331,6 +332,7 @@ class megafacturador extends fs_controller
             {
                $n = new linea_factura_cliente();
                $n->idalbaran = $alb->idalbaran;
+               $n->idlineaalbaran = $l->idlinea;
                $n->idfactura = $factura->idfactura;
                $n->cantidad = $l->cantidad;
                $n->codimpuesto = $l->codimpuesto;
@@ -516,7 +518,8 @@ class megafacturador extends fs_controller
           * comprobamos que la fecha de la factura no esté dentro de un periodo de
           * IVA regularizado.
           */
-         $this->new_error_msg('El '.FS_IVA.' de ese periodo ya ha sido regularizado. No se pueden añadir más facturas en esa fecha.');
+         $this->new_error_msg('El '.FS_IVA.' de ese periodo ya ha sido regularizado.'
+                 . ' No se pueden añadir más facturas en esa fecha.');
          $continuar = FALSE;
       }
       else if( $factura->save() )
@@ -527,6 +530,7 @@ class megafacturador extends fs_controller
             {
                $n = new linea_factura_proveedor();
                $n->idalbaran = $alb->idalbaran;
+               $n->idlineaalbaran = $l->idlinea;
                $n->idfactura = $factura->idfactura;
                $n->cantidad = $l->cantidad;
                $n->codimpuesto = $l->codimpuesto;
