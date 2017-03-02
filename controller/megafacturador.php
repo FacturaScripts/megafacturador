@@ -1,6 +1,7 @@
 <?php
+
 /*
- * This file is part of FacturaScripts
+ * This file is part of megafacturador
  * Copyright (C) 2014-2017  Carlos Garcia Gomez  neorazorx@gmail.com
  *
  * This program is free software: you can redistribute it and/or modify
