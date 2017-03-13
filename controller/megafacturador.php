@@ -346,6 +346,7 @@ class megafacturador extends fs_controller
                $n->pvpunitario = $l->pvpunitario;
                $n->recargo = $l->recargo;
                $n->referencia = $l->referencia;
+               $n->codcombinacion = $l->codcombinacion;
                $n->mostrar_cantidad = $l->mostrar_cantidad;
                $n->mostrar_precio = $l->mostrar_precio;
                
@@ -427,6 +428,11 @@ class megafacturador extends fs_controller
       return $ok;
    }
    
+   /**
+    * Genera una factura de compra a partir de un array de albaranes.
+    * @param albaran_proveedor $albaranes
+    * @return type
+    */
    private function generar_factura_proveedor($albaranes)
    {
       $continuar = TRUE;
@@ -544,6 +550,7 @@ class megafacturador extends fs_controller
                $n->pvpunitario = $l->pvpunitario;
                $n->recargo = $l->recargo;
                $n->referencia = $l->referencia;
+               $n->codcombinacion = $l->codcombinacion;
                
                if( !$n->save() )
                {
