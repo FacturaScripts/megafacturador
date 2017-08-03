@@ -20,8 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 {if="$fsc->url_recarga"}
 <script type="text/javascript">
-    function recargar()
-    {
+    function recargar() {
         window.location.href = '{$fsc->url_recarga}';
     }
     $(document).ready(function () {
@@ -30,8 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 </script>
 {/if}
 <script type="text/javascript">
-    function facturar()
-    {
+    function facturar() {
         document.f_facturador.procesar.value = 'TRUE';
         document.f_facturador.submit();
     }
@@ -209,7 +207,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </div>
         <div class="col-sm-3">
             {if="!$fsc->empresa->contintegrada"}
-            <a href="" class="btn btn-block btn-warning">
+            <a href="{$fsc->url()}&activar_contintegrada=TRUE" class="btn btn-block btn-warning">
                 <i class="fa fa-toggle-on" aria-hidden="true"></i>&nbsp;
                 Activar contabilidad integrada
             </a>

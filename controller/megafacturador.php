@@ -1,5 +1,4 @@
 <?php
-
 /*
  * This file is part of megafacturador
  * Copyright (C) 2014-2017  Carlos Garcia Gomez  neorazorx@gmail.com
@@ -33,7 +32,8 @@ require_model('regularizacion_iva.php');
 require_model('serie.php');
 require_model('subcuenta.php');
 
-class megafacturador extends fs_controller {
+class megafacturador extends fs_controller
+{
 
     public $numasientos;
     public $opciones;
@@ -45,20 +45,24 @@ class megafacturador extends fs_controller {
     private $ejercicios;
     private $forma_pago;
     private $formas_pago;
+    private $fsvar;
     private $proveedor;
     private $regularizacion;
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct(__CLASS__, 'MegaFacturador', 'ventas', FALSE, TRUE, TRUE);
     }
 
-    protected function private_core() {
+    protected function private_core()
+    {
         $this->asiento_factura = new asiento_factura();
         $this->cliente = new cliente();
         $this->ejercicio = new ejercicio();
         $this->ejercicios = array();
         $this->forma_pago = new forma_pago();
         $this->formas_pago = $this->forma_pago->all();
+        $this->fsvar = new fs_var();
         $this->numasientos = 0;
         $this->proveedor = new proveedor();
         $this->regularizacion = new regularizacion_iva();
@@ -72,6 +76,8 @@ class megafacturador extends fs_controller {
             $this->generar_facturas();
         } else if (isset($_GET['genasientos'])) {
             $this->generar_asientos();
+        } else if (isset($_GET['activar_contintegrada'])) {
+            $this->activar_contabilidad_integrada();
         } else {
             $this->share_extensions();
         }
@@ -79,8 +85,8 @@ class megafacturador extends fs_controller {
         $this->numasientos = $this->num_asientos_a_generar();
     }
 
-    private function load_config() {
-        $fsvar = new fs_var();
+    private function load_config()
+    {
         $this->opciones = array(
             'megafac_agrupar' => FALSE,
             'megafac_codserie' => '',
@@ -90,13 +96,14 @@ class megafacturador extends fs_controller {
             'megafac_hasta' => date('d-m-Y'),
             'megafac_ventas' => 1,
         );
-        $this->opciones = $fsvar->array_get($this->opciones, FALSE);
+        $this->opciones = $this->fsvar->array_get($this->opciones, FALSE);
 
         /// corregimos el formato de la fecha
         $this->opciones['megafac_hasta'] = date('d-m-Y', strtotime($this->opciones['megafac_hasta']));
     }
 
-    private function modificar_config() {
+    private function modificar_config()
+    {
         $this->opciones['megafac_agrupar'] = filter_input(INPUT_POST, 'megafac_agrupar') ? 1 : 0;
         $this->opciones['megafac_codserie'] = filter_input(INPUT_POST, 'megafac_codserie');
         $this->opciones['megafac_compras'] = filter_input(INPUT_POST, 'megafac_compras') ? 1 : 0;
@@ -105,15 +112,25 @@ class megafacturador extends fs_controller {
         $this->opciones['megafac_hasta'] = filter_input(INPUT_POST, 'megafac_hasta');
         $this->opciones['megafac_ventas'] = filter_input(INPUT_POST, 'megafac_ventas') ? 1 : 0;
 
-        $fsvar = new fs_var();
-        $fsvar->array_save($this->opciones);
+        $this->fsvar->array_save($this->opciones);
 
         if (filter_input(INPUT_POST, 'procesar') == 'TRUE') {
             $this->generar_facturas();
         }
     }
 
-    private function get_sql_aux() {
+    private function activar_contabilidad_integrada()
+    {
+        $this->empresa->contintegrada = TRUE;
+        if ($this->empresa->save()) {
+            $this->new_message('Datos guardados correctamente.');
+        } else {
+            $this->new_error_msg('Error al guardar los datos.');
+        }
+    }
+
+    private function get_sql_aux()
+    {
         $sql = '';
 
         if ($this->opciones['megafac_codserie'] != '') {
@@ -126,17 +143,18 @@ class megafacturador extends fs_controller {
         return $sql;
     }
 
-    public function albaranes_pendientes($tabla = 'albaranescli', $codcliente = '', $codproveedor = '', $codserie = '', $coddivisa = '') {
+    public function albaranes_pendientes($tabla = 'albaranescli', $codcliente = '', $codproveedor = '', $codserie = '', $coddivisa = '')
+    {
         $alblist = array();
         $sql = "SELECT * FROM " . $tabla . " WHERE ptefactura = true" . $this->get_sql_aux();
         if ($codcliente) {
             $sql .= " AND codcliente = " . $this->serie->var2str($codcliente)
-                    ." AND codserie = " . $this->serie->var2str($codserie)
-                    ." AND coddivisa = " . $this->serie->var2str($coddivisa);
+                . " AND codserie = " . $this->serie->var2str($codserie)
+                . " AND coddivisa = " . $this->serie->var2str($coddivisa);
         } else if ($codproveedor) {
             $sql .= " AND codproveedor = " . $this->serie->var2str($codproveedor)
-                    ." AND codserie = " . $this->serie->var2str($codserie)
-                    ." AND coddivisa = " . $this->serie->var2str($coddivisa);
+                . " AND codserie = " . $this->serie->var2str($codserie)
+                . " AND coddivisa = " . $this->serie->var2str($coddivisa);
         }
         $sql .= ' ORDER BY fecha ASC, hora ASC';
 
@@ -145,7 +163,7 @@ class megafacturador extends fs_controller {
             foreach ($data as $d) {
                 $alblist[] = new albaran_cliente($d);
             }
-        } else if($data AND $tabla == 'albaranesprov') {
+        } else if ($data AND $tabla == 'albaranesprov') {
             foreach ($data as $d) {
                 $alblist[] = new albaran_proveedor($d);
             }
@@ -154,7 +172,8 @@ class megafacturador extends fs_controller {
         return $alblist;
     }
 
-    public function total_pendientes($tabla = 'albaranescli') {
+    public function total_pendientes($tabla = 'albaranescli')
+    {
         $total = 0;
         $sql = "SELECT count(idalbaran) as total FROM " . $tabla . " WHERE ptefactura = true" . $this->get_sql_aux();
         $data = $this->db->select($sql);
@@ -165,7 +184,8 @@ class megafacturador extends fs_controller {
         return $total;
     }
 
-    private function generar_facturas() {
+    private function generar_facturas()
+    {
         $recargar = FALSE;
 
         if ($this->opciones['megafac_ventas']) {
@@ -176,7 +196,7 @@ class megafacturador extends fs_controller {
                 $albaranes = array();
                 if ($this->opciones['megafac_agrupar']) {
                     $albaranes2 = $this->albaranes_pendientes('albaranescli', $alb->codcliente, '', $alb->codserie, $alb->coddivisa);
-                    if($albaranes2 AND $albaranes2[0]->idalbaran == $alb->idalbaran) {
+                    if ($albaranes2 AND $albaranes2[0]->idalbaran == $alb->idalbaran) {
                         /**
                          * Debemos evitar el caso de avanzar demasiado en la fecha
                          * al agrupar los albaranes de un cliente que ya hemos procesado
@@ -188,7 +208,7 @@ class megafacturador extends fs_controller {
                 } else {
                     $albaranes[] = $alb;
                 }
-                
+
                 if (empty($albaranes)) {
                     /// hemos facturado ya este albarán al agruparlo con otros, no pasa nada
                 } else if ($this->generar_factura_cliente($albaranes)) {
@@ -210,7 +230,7 @@ class megafacturador extends fs_controller {
                 $albaranes = array();
                 if ($this->opciones['megafac_agrupar']) {
                     $albaranes2 = $this->albaranes_pendientes('albaranesprov', '', $alb->codproveedor, $alb->codserie, $alb->coddivisa);
-                    if($albaranes2 AND $albaranes2[0]->idalbaran == $alb->idalbaran) {
+                    if ($albaranes2 AND $albaranes2[0]->idalbaran == $alb->idalbaran) {
                         /**
                          * Debemos evitar el caso de avanzar demasiado en la fecha
                          * al agrupar los albaranes de un proveedor que ya hemos procesado
@@ -244,28 +264,30 @@ class megafacturador extends fs_controller {
             $this->new_message('Recargando... &nbsp; <i class="fa fa-refresh fa-spin"></i>');
         } else {
             $this->new_advice('Finalizado. <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>');
-            if($this->opciones['megafac_email']) {
+            if ($this->opciones['megafac_email']) {
                 $this->enviar_facturas();
             }
         }
     }
-    
-    private function enviar_facturas() {
-        if($this->user->have_access_to('ventas_enviar_facturas')) {
+
+    private function enviar_facturas()
+    {
+        if ($this->user->have_access_to('ventas_enviar_facturas')) {
             header('Location: index.php?page=ventas_enviar_facturas&enviar=TRUE');
         } else {
             $this->new_error_msg('Opción de enviar desactivada.');
         }
     }
 
-    private function share_extensions() {
+    private function share_extensions()
+    {
         $fsext = new fs_extension();
         $fsext->name = 'megafacturar_albpro';
         $fsext->from = __CLASS__;
         $fsext->to = 'compras_albaranes';
         $fsext->type = 'button';
         $fsext->text = '<i class="fa fa-check-square-o" aria-hidden="true"></i>'
-                . '<span class="hidden-xs">&nbsp; megafacturador</span>';
+            . '<span class="hidden-xs">&nbsp; megafacturador</span>';
         $fsext->save();
 
         $fsext2 = new fs_extension();
@@ -274,7 +296,7 @@ class megafacturador extends fs_controller {
         $fsext2->to = 'ventas_albaranes';
         $fsext2->type = 'button';
         $fsext2->text = '<i class="fa fa-check-square-o" aria-hidden="true"></i>'
-                . '<span class="hidden-xs">&nbsp; megafacturador</span>';
+            . '<span class="hidden-xs">&nbsp; megafacturador</span>';
         $fsext2->save();
     }
 
@@ -282,7 +304,8 @@ class megafacturador extends fs_controller {
      * Genera una factura a partir de un array de albaranes.
      * @param albaran_cliente $albaranes
      */
-    private function generar_factura_cliente($albaranes) {
+    private function generar_factura_cliente($albaranes)
+    {
         $continuar = TRUE;
 
         $factura = new factura_cliente();
@@ -366,7 +389,7 @@ class megafacturador extends fs_controller {
              * IVA regularizado.
              */
             $this->new_error_msg('El ' . FS_IVA . ' de ese periodo ya ha sido regularizado.'
-                    . ' No se pueden añadir más facturas en esa fecha.');
+                . ' No se pueden añadir más facturas en esa fecha.');
             $continuar = FALSE;
         } else if ($factura->save()) {
             foreach ($albaranes as $alb) {
@@ -429,7 +452,8 @@ class megafacturador extends fs_controller {
         return $continuar;
     }
 
-    private function recalcular_factura(&$factura, &$albaranes) {
+    private function recalcular_factura(&$factura, &$albaranes)
+    {
         /// calculamos neto e iva
         foreach ($albaranes as $alb) {
             foreach ($alb->get_lineas() as $l) {
@@ -448,7 +472,8 @@ class megafacturador extends fs_controller {
         $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
     }
 
-    private function generar_asiento($tipo = 'venta', $factura, $forzar = FALSE, $soloasiento = FALSE) {
+    private function generar_asiento($tipo = 'venta', $factura, $forzar = FALSE, $soloasiento = FALSE)
+    {
         $ok = TRUE;
 
         if ($this->empresa->contintegrada OR $forzar) {
@@ -475,9 +500,10 @@ class megafacturador extends fs_controller {
     /**
      * Genera una factura de compra a partir de un array de albaranes.
      * @param albaran_proveedor $albaranes
-     * @return type
+     * @return bool
      */
-    private function generar_factura_proveedor($albaranes) {
+    private function generar_factura_proveedor($albaranes)
+    {
         $continuar = TRUE;
 
         $factura = new factura_proveedor();
@@ -542,7 +568,7 @@ class megafacturador extends fs_controller {
              * IVA regularizado.
              */
             $this->new_error_msg('El ' . FS_IVA . ' de ese periodo ya ha sido regularizado.'
-                    . ' No se pueden añadir más facturas en esa fecha.');
+                . ' No se pueden añadir más facturas en esa fecha.');
             $continuar = FALSE;
         } else if ($factura->save()) {
             foreach ($albaranes as $alb) {
@@ -603,7 +629,8 @@ class megafacturador extends fs_controller {
         return $continuar;
     }
 
-    private function generar_asientos() {
+    private function generar_asientos()
+    {
         $nuevos = 0;
 
         $data = $this->db->select_limit("SELECT * FROM facturascli WHERE idasiento IS NULL", 50, 0);
@@ -646,7 +673,8 @@ class megafacturador extends fs_controller {
         }
     }
 
-    private function num_asientos_a_generar() {
+    private function num_asientos_a_generar()
+    {
         $num = 0;
 
         $data = $this->db->select("SELECT COUNT(idfactura) as num FROM facturascli WHERE idasiento IS NULL;");
@@ -662,7 +690,8 @@ class megafacturador extends fs_controller {
         return $num;
     }
 
-    private function get_ejercicio($fecha) {
+    private function get_ejercicio($fecha)
+    {
         $eje = FALSE;
 
         if (isset($this->ejercicios[$fecha])) {
@@ -677,7 +706,8 @@ class megafacturador extends fs_controller {
         return $eje;
     }
 
-    private function get_forma_pago($codpago) {
+    private function get_forma_pago($codpago)
+    {
         $fp = FALSE;
 
         foreach ($this->formas_pago as $fp0) {
@@ -689,5 +719,4 @@ class megafacturador extends fs_controller {
 
         return $fp;
     }
-
 }
