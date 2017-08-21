@@ -317,6 +317,12 @@ class megafacturador extends fs_controller {
         $factura->envio_direccion = $albaranes[0]->envio_direccion;
         $factura->envio_nombre = $albaranes[0]->envio_nombre;
         $factura->envio_provincia = $albaranes[0]->envio_provincia;
+        
+        $factura->dtopor1 = $albaranes[0]->dtopor1;
+        $factura->dtopor2 = $albaranes[0]->dtopor2;
+        $factura->dtopor3 = $albaranes[0]->dtopor3;
+        $factura->dtopor4 = $albaranes[0]->dtopor4;
+        $factura->dtopor5 = $albaranes[0]->dtopor5;
 
         /// asignamos fecha y ejercicio usando la del albarán
         if ($this->opciones['megafac_fecha'] == 'albaran') {
@@ -379,6 +385,9 @@ class megafacturador extends fs_controller {
                     $n->codimpuesto = $l->codimpuesto;
                     $n->descripcion = $l->descripcion;
                     $n->dtopor = $l->dtopor;
+                    $n->dtopor2 = $l->dtopor2;
+                    $n->dtopor3 = $l->dtopor3;
+                    $n->dtopor4 = $l->dtopor4;
                     $n->irpf = $l->irpf;
                     $n->iva = $l->iva;
                     $n->pvpsindto = $l->pvpsindto;
@@ -430,21 +439,19 @@ class megafacturador extends fs_controller {
     }
 
     private function recalcular_factura(&$factura, &$albaranes) {
+        $due_totales = $this->calcDUE(array($factura->dtopor1, $factura->dtopor2, $factura->dtopor3, $factura->dtopor4, $factura->dtopor5));
         /// calculamos neto e iva
         foreach ($albaranes as $alb) {
             foreach ($alb->get_lineas() as $l) {
-                $factura->neto += $l->pvptotal;
-                $factura->totaliva += $l->pvptotal * $l->iva / 100;
-                $factura->totalirpf += $l->pvptotal * $l->irpf / 100;
-                $factura->totalrecargo += $l->pvptotal * $l->recargo / 100;
+                $factura->netosindto += $l->pvptotal;
+                $pvpcondto = $l->pvptotal * $due_totales;
+                $factura->neto += $pvpcondto;
+                $factura->totaliva += $pvpcondto * $l->iva / 100;
+                $factura->totalirpf += $pvpcondto * $l->irpf / 100;
+                $factura->totalrecargo += $pvpcondto * $l->recargo / 100;
             }
         }
 
-        /// redondeamos
-        $factura->neto = round($factura->neto, FS_NF0);
-        $factura->totaliva = round($factura->totaliva, FS_NF0);
-        $factura->totalirpf = round($factura->totalirpf, FS_NF0);
-        $factura->totalrecargo = round($factura->totalrecargo, FS_NF0);
         $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
     }
 
@@ -690,4 +697,32 @@ class megafacturador extends fs_controller {
         return $fp;
     }
 
+    /**
+     * Devuelve el escalar del descuento unificado equivalente
+     * Por ejemplo: recibe descuentos = [50, 10] y devuelve 0.45
+     * 
+     * @param array $descuentos contiene un array de float.
+     * @return float
+     */
+    public function calcDUE($descuentos)
+    {
+        return (1 - $this->caclDescDUE($descuentos) / 100);
+    }
+    
+    /**
+     * Devuelve el descuento unificado equivalente
+     * Por ejemplo: recibe descuentos = [50, 10] y devuelve 55
+     * 
+     * @param array $descuentos contiene un array de float.
+     * @return float
+     */
+    public function caclDescDUE($descuentos)
+    {
+        $dto = 1;
+        foreach($descuentos as $descuento) {
+            $dto *= (1 - $descuento / 100);
+        }
+        return (1 - $dto) * 100;
+    }
+    
 }
