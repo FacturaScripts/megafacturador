@@ -439,7 +439,7 @@ class megafacturador extends fs_controller {
     }
 
     private function recalcular_factura(&$factura, &$albaranes) {
-        $due_totales = $this->calcDUE(array($factura->dtopor1, $factura->dtopor2, $factura->dtopor3, $factura->dtopor4, $factura->dtopor5));
+        $due_totales = $this->calc_due(array($factura->dtopor1, $factura->dtopor2, $factura->dtopor3, $factura->dtopor4, $factura->dtopor5));
         /// calculamos neto e iva
         foreach ($albaranes as $alb) {
             foreach ($alb->get_lineas() as $l) {
@@ -704,9 +704,9 @@ class megafacturador extends fs_controller {
      * @param array $descuentos contiene un array de float.
      * @return float
      */
-    public function calcDUE($descuentos)
+    public function calc_due($descuentos)
     {
-        return (1 - $this->caclDescDUE($descuentos) / 100);
+        return (1 - $this->calc_desc_due($descuentos) / 100);
     }
     
     /**
@@ -716,7 +716,7 @@ class megafacturador extends fs_controller {
      * @param array $descuentos contiene un array de float.
      * @return float
      */
-    public function caclDescDUE($descuentos)
+    public function calc_desc_due($descuentos)
     {
         $dto = 1;
         foreach($descuentos as $descuento) {
