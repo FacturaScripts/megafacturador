@@ -174,6 +174,10 @@ class megafacturador extends fbase_controller
     private function generar_facturas()
     {
         $recargar = FALSE;
+        $fecha = $this->today();
+        if ($this->opciones['megafac_fecha'] == 'albaran') {
+            $fecha = '';
+        }
 
         if ($this->opciones['megafac_ventas']) {
             $total1 = 0;
@@ -198,7 +202,7 @@ class megafacturador extends fbase_controller
 
                 if (empty($albaranes)) {
                     /// hemos facturado ya este albarán al agruparlo con otros, no pasa nada
-                } else if ($this->fbase_facturar_albaran_cliente($albaranes)) {
+                } else if ($this->fbase_facturar_albaran_cliente($albaranes, $fecha)) {
                     $total1++;
                     $recargar = TRUE;
                 } else {
@@ -232,7 +236,7 @@ class megafacturador extends fbase_controller
 
                 if (empty($albaranes)) {
                     /// hemos facturado ya este albarán al agruparlo con otros, no pasa nada
-                } else if ($this->fbase_facturar_albaran_proveedor($albaranes)) {
+                } else if ($this->fbase_facturar_albaran_proveedor($albaranes, $fecha)) {
                     $total2++;
                     $recargar = TRUE;
                 } else {
