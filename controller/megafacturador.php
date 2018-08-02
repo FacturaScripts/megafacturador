@@ -133,7 +133,7 @@ class megafacturador extends fbase_controller
     public function albaranes_pendientes($tabla = 'albaranescli', $codcliente = '', $codproveedor = '', $codserie = '', $coddivisa = '')
     {
         $alblist = array();
-        $sql = "SELECT * FROM " . $tabla . " WHERE ptefactura = true" . $this->get_sql_aux();
+        $sql = "SELECT * FROM " . $tabla . " WHERE ptefactura = true AND total != 0" . $this->get_sql_aux();
         if ($codcliente) {
             $sql .= " AND codcliente = " . $this->serie->var2str($codcliente)
                 . " AND codserie = " . $this->serie->var2str($codserie)
@@ -162,7 +162,7 @@ class megafacturador extends fbase_controller
     public function total_pendientes($tabla = 'albaranescli')
     {
         $total = 0;
-        $sql = "SELECT count(idalbaran) as total FROM " . $tabla . " WHERE ptefactura = true" . $this->get_sql_aux();
+        $sql = "SELECT count(idalbaran) as total FROM " . $tabla . " WHERE ptefactura = true AND total != 0" . $this->get_sql_aux();
         $data = $this->db->select($sql);
         if ($data) {
             $total = intval($data[0]['total']);
