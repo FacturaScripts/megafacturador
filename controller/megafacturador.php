@@ -303,14 +303,6 @@ class megafacturador extends fbase_controller
             } else if (get_class_name($factura) == 'factura_proveedor') {
                 $ok = $this->asiento_factura->generar_asiento_compra($factura);
             }
-
-            foreach ($this->asiento_factura->errors as $err) {
-                $this->new_error_msg($err);
-            }
-
-            foreach ($this->asiento_factura->messages as $msg) {
-                $this->new_message($msg);
-            }
         }
 
         return $ok;
