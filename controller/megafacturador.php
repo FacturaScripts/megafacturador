@@ -1,7 +1,7 @@
 <?php
-/*
+/**
  * This file is part of megafacturador
- * Copyright (C) 2014-2017  Carlos Garcia Gomez  neorazorx@gmail.com
+ * Copyright (C) 2014-2019 Carlos Garcia Gomez <neorazorx@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -10,31 +10,93 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  * 
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 require_once 'plugins/facturacion_base/extras/fbase_controller.php';
 
 class megafacturador extends fbase_controller
 {
-
-    public $numasientos;
-    public $opciones;
-    public $serie;
-    public $url_recarga;
+    /**
+     *
+     * @var asiento_factura
+     */
     private $asiento_factura;
+    
+    /**
+     *
+     * @var cliente
+     */
     private $cliente;
+    
+    /**
+     *
+     * @var ejercicio
+     */
     private $ejercicio;
+    
+    /**
+     *
+     * @var ejercicio[]
+     */
     private $ejercicios;
+    
+    /**
+     *
+     * @var forma_pago
+     */
     private $forma_pago;
+    
+    /**
+     *
+     * @var forma_pago[]
+     */
     private $formas_pago;
+    
+    /**
+     *
+     * @var fs_var
+     */
     private $fsvar;
+
+    /**
+     *
+     * @var int
+     */
+    public $numasientos;
+    
+    /**
+     *
+     * @var array
+     */
+    public $opciones;
+    
+    /**
+     *
+     * @var proveedor
+     */
     private $proveedor;
+    
+    /**
+     *
+     * @var regularizacion_iva
+     */
     private $regularizacion;
+    
+    /**
+     *
+     * @var serie
+     */
+    public $serie;
+    
+    /**
+     *
+     * @var string
+     */
+    public $url_recarga;
 
     public function __construct()
     {
@@ -161,14 +223,13 @@ class megafacturador extends fbase_controller
 
     public function total_pendientes($tabla = 'albaranescli')
     {
-        $total = 0;
         $sql = "SELECT count(idalbaran) as total FROM " . $tabla . " WHERE ptefactura = true AND total != 0" . $this->get_sql_aux();
         $data = $this->db->select($sql);
         if ($data) {
-            $total = intval($data[0]['total']);
+            return intval($data[0]['total']);
         }
 
-        return $total;
+        return 0;
     }
 
     private function generar_facturas()
